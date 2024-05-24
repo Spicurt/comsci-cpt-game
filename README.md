@@ -1,2 +1,3 @@
 # comsci-cpt-game
-comsci cpt
+- game: blackjack
+- 
