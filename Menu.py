@@ -1,7 +1,6 @@
 #https://www.youtube.com/watch?v=2iyx8_elcYg&ab_channel=CodingWithRuss
 import pygame
 
-
 pygame.init()
 
 WIDTH = 640
