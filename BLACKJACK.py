@@ -2,6 +2,8 @@ import pygame
 
 pygame.init()
 
+#GREEN CODE: does not work, or work on it later
+
 WIDTH = 640
 HEIGHT = 480
 SIZE = (WIDTH, HEIGHT)
@@ -53,34 +55,34 @@ class Button():
 #Button images
 resume_img = pygame.image.load("button_sprites/resume.png").convert_alpha()
 options_img = pygame.image.load("button_sprites/menu.png").convert_alpha()
-quit_img = pygame.image.load("button_sprites/exit.png").convert_alpha()
+quit_img = pygame.image.load("button_sprites/quit.png").convert_alpha()
 video_img = pygame.image.load('button_sprites/video.png').convert_alpha()
-audio_img = pygame.image.load('button_sprites/audio.png').convert_alpha()
-keys_img = pygame.image.load('button_sprites/keys.png').convert_alpha()
-back_img = pygame.image.load('button_sprites/back.png').convert_alpha()
-pause_img = pygame.image.load("button_sprites/pause.png").convert_alpha()
-start_img = pygame.image.load('button_sprites/new.png').convert_alpha()
+audio_img = pygame.image.load('button_sprites/audio.png').convert_alpha() #red
+keys_img = pygame.image.load('button_sprites/keys.png').convert_alpha() #green
+back_img = pygame.image.load('button_sprites/back.png').convert_alpha() #red
+pause_img = pygame.image.load("button_sprites/pause.png").convert_alpha() 
+start_img = pygame.image.load('button_sprites/new.png').convert_alpha() #red
 instr_img = pygame.image.load('button_sprites/instr.png').convert_alpha()
 shop_img = pygame.image.load('button_sprites/shop.png').convert_alpha()
 
 #Button instances
-resume_btn = Button(207, 80, resume_img, 1)
-options_btn = Button(220, 220, options_img, 1)
-quit_btn = Button(240, 370, quit_img, 1)
-video_btn = Button(226, 75, video_img, 1)
-audio_btn = Button(225, 200, audio_img, 1)
-keys_btn = Button(230, 325, keys_img, 1)
+resume_btn = Button(60, 80, resume_img, 1)
+options_btn = Button(60, 220, options_img, 1)
+quit_btn = Button(60, 370, quit_img, 1)
+video_btn = Button(400, 75, video_img, 1)
+audio_btn = Button(400, 200, audio_img, 1)
+keys_btn = Button(400, 325, keys_img, 1)
 back_btn = Button(1, 1, back_img, 0.8)
 pause_btn = Button(1, 1, pause_img, 0.8)
-start_btn = Button(50, 200, start_img, 1)
-instr_btn = Button(350, 200, instr_img, 1)
-shop_btn = Button(50, 400, shop_img, 1)
+start_btn = Button(200, 45, start_img, 1)
+instr_btn = Button(190, 195, instr_img, 1)
+shop_btn = Button(240, 345, shop_img, 1)
 
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x,y))
 
-# #display time for text- my own code
+# #display time for text
 # display_time = 0
 
 running = True
@@ -114,6 +116,7 @@ while running:
                     menu_state = "options"
                 if quit_btn.draw(screen):
                     game_state = "starting screen"
+                    game_paused = False
             if menu_state == "options":
                 if video_btn.draw(screen):
                     print("Video Settings")
@@ -138,6 +141,7 @@ while running:
         
         if shop_btn.draw(screen):
             print("Shop")
+            #menu_state = 'shop'
 
 
     pygame.display.flip()
