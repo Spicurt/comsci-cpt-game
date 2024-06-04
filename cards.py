@@ -1,9 +1,10 @@
-import random 
+import random, sys
 
 card_categories = ['Hearts', 'Diamonds', 'Clubs', 'Spades'] 
 cards_list = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'] 
 deck = [(card, category) for category in card_categories for card in cards_list]
 chips = 1000
+high_score = 1000
 bet = 0
 
 def card_value(hand):
@@ -23,7 +24,8 @@ def card_value(hand):
     return sum
    
 
-def game_start(): 
+def game_start():
+    global high_score
     global chips
     global bet
     random.shuffle(deck) 
@@ -77,6 +79,8 @@ def game_start():
         print("Player wins (Dealer Loss Because Dealer Score is exceeding 21)")
         chips += bet*2
         bet = 0
+        if chips >= high_score:
+            high_score = chips
     elif player_score > 21: 
         print("Cards Dealer Has:", dealer_card) 
         print("Score Of The Dealer:", dealer_score) 
@@ -92,6 +96,8 @@ def game_start():
         print("Player wins (Player Has High Score than Dealer)")
         chips += bet*2
         bet = 0 
+        if chips >= high_score:
+            high_score = chips
     elif dealer_score > player_score: 
         print("Cards Dealer Has:", dealer_card) 
         print("Score Of The Dealer:", dealer_score) 
@@ -107,6 +113,7 @@ def game_start():
         print("It's a tie.")
 
 while True:
+    print("Your highscore is: " + str(high_score))
     play = input("Do you want to play Blackjack? Y/N")
     if play == "y" or play == "Y":
         print("You have " + str(chips) + " chips in total")
