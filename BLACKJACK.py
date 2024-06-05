@@ -130,6 +130,9 @@ while running:
         else:
             if pause_btn.draw(screen):
                 game_paused = True
+       
+            #Darren put the game here
+
     elif game_state == 'starting screen':
         screen.fill('seagreen') 
 
