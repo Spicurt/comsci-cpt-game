@@ -14,6 +14,7 @@ screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
 #button images
+#figure out folder organization
 cardback_img = pygame.image.load("card_sprites/card_back").convert_alpha()
 
 #button instances
