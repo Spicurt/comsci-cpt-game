@@ -7,9 +7,9 @@ deck = [(card, category) for category in card_categories for card in cards_list]
 chips = 1000
 high_score = 1000
 bet = 0
-white = (255, 255, 255)
-green = (255, 255, 255)
-blue = (255, 255, 255)
+white = (255, 0, 255)
+green = (255, 255, 0)
+blue = (0, 255, 255)
 game_text = ""
 X = 400
 Y = 400
@@ -37,90 +37,104 @@ def game_start():
     global bet
     random.shuffle(deck) 
     dealer_card = [deck.pop(), deck.pop()]
-    player_card = [deck.pop(), deck.pop()]
-    while True: 
-        player_score = card_value(player_card)
-        dealer_score = card_value(dealer_card)
-        print("Cards Player Has:", player_card) 
-        print("Score Of The Player:", player_score) 
-        print("\n")
-        if player_score > 21:
-            input("You have exceeded 21. You LOSE (enter to cont.)")
-            break
+    player_card = [deck.pop(), deck.pop()] 
+    text = font.render("game_text", True, green, blue)
+    textRect = text.get_rect()
+    textRect.center = (WIDTH // 2, HEIGHT// 2)
+    player_score = card_value(player_card)
+    dealer_score = card_value(dealer_card)
+    text = font.render("Cards Player Has: " + str(player_card) + " Score Of The Player: " + str(player_score), True, green, blue)
+    if player_score > 21:
+        text = font.render("You have exceeded 21. Press 1 to continue", True, green, blue)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                print("works")
         elif player_score == 21:
-            break
+            print("works")
         elif dealer_score > 21:
-            input("The dealer has exceeded 21. You WIN (enter to cont.)")
-            break
+            text = font.render("The dealer has exceeded 21. Press 1 to continue", True, green, blue)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    print("works")
         else:
-            choice = input('Hit or stand (H/S): ').lower() 
-            if choice == "h":
-                new_card = deck.pop() 
-                player_card.append(new_card) 
-            elif choice == "s": 
-                break
-            else: 
-                print("Invalid choice. Please try again.") 
-                continue
+            text = font.render("Hit or Stand? H/S", True, green, blue) 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_h:
+                    new_card = deck.pop() 
+                    player_card.append(new_card) 
+                elif event.key == pygame.K_s: 
+                    print('works')
+                else: 
+                    game_text = "Invalid choice. Please try again."
+    if player_score > 21:
+        text = font.render("You have exceeded 21. Press 1 to continue", True, green, blue)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                print("works")
+        elif player_score == 21:
+            print("works")
+        elif dealer_score > 21:
+            text = font.render("The dealer has exceeded 21. Press 1 to continue", True, green, blue)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    print("works")              
 
     while dealer_score < 17: 
         new_card = deck.pop() 
         dealer_card.append(new_card) 
-        dealer_score = card_value(dealer_card) 
-
-    print("Cards Dealer Has:", dealer_card) 
-    print("Score Of The Dealer:", dealer_score) 
-    print("\n") 
+        dealer_score = card_value(dealer_card)
+        pygame.display.flip()
+        clock.tick(30)
+    game_text ="Cards Dealer Has:", dealer_card
+    game_text ="Score Of The Dealer:", dealer_score
     
     if dealer_score > 21 and player_score > 21: 
-        print("Cards Dealer Has:", dealer_card) 
-        print("Score Of The Dealer:", dealer_score) 
-        print("Cards Player Has:", player_card) 
-        print("Score Of The Player:", player_score) 
-        print("It's a tie.")
+        game_text = "Cards Dealer Has:", dealer_card
+        game_text = "Score Of The Dealer:", dealer_score
+        game_text = "Cards Player Has:", player_card
+        game_text = "Score Of The Player:", player_score
+        game_text = "It's a tie."
     elif dealer_score > 21: 
-        print("Cards Dealer Has:", dealer_card) 
-        print("Score Of The Dealer:", dealer_score) 
-        print("Cards Player Has:", player_card) 
-        print("Score Of The Player:", player_score) 
-        print("Player wins (Dealer Loss Because Dealer Score is exceeding 21)")
+        game_text = "Cards Dealer Has:", dealer_card
+        game_text = "Score Of The Dealer:", dealer_score 
+        game_text = "Cards Player Has:", player_card
+        game_text = "Score Of The Player:", player_score
+        game_text = "Player wins (Dealer Loss Because Dealer Score is exceeding 21)"
         chips += bet*2
         bet = 0
         if chips >= high_score:
             high_score = chips
     elif player_score > 21: 
-        print("Cards Dealer Has:", dealer_card) 
-        print("Score Of The Dealer:", dealer_score) 
-        print("Cards Player Has:", player_card) 
-        print("Score Of The Player:", player_score) 
-        print("Dealer wins (Player Loss Because Player Score is exceeding 21)")
+        game_text = "Cards Dealer Has:", dealer_card
+        game_text = "Score Of The Dealer:", dealer_score
+        game_text = "Cards Player Has:", player_card 
+        game_text = "Score Of The Player:", player_score 
+        game_text = "Dealer wins (Player Loss Because Player Score is exceeding 21)"
         bet = 0
     elif player_score > dealer_score: 
-        print("Cards Dealer Has:", dealer_card) 
-        print("Score Of The Dealer:", dealer_score) 
-        print("Cards Player Has:", player_card) 
-        print("Score Of The Player:", player_score) 
-        print("Player wins (Player Has High Score than Dealer)")
+        game_text = "Cards Dealer Has:", dealer_card
+        game_text = "Score Of The Dealer:", dealer_score 
+        game_text = "Cards Player Has:", player_card
+        game_text = "Score Of The Player:", player_score
+        game_text = "Player wins (Player Has High Score than Dealer)"
         chips += bet*2
         bet = 0 
         if chips >= high_score:
             high_score = chips
     elif dealer_score > player_score: 
-        print("Cards Dealer Has:", dealer_card) 
-        print("Score Of The Dealer:", dealer_score) 
-        print("Cards Player Has:", player_card) 
-        print("Score Of The Player:", player_score) 
-        print("Dealer wins (Dealer Has High Score than Player)")
+        game_text = "Cards Dealer Has:", dealer_card
+        game_text = "Score Of The Dealer:", dealer_score
+        game_text = "Cards Player Has:", player_card
+        game_text = "Score Of The Player:", player_score 
+        game_text = "Dealer wins (Dealer Has High Score than Player)"
         bet = 0
     else: 
-        print("Cards Dealer Has:", dealer_card) 
-        print("Score Of The Dealer:", dealer_score) 
-        print("Cards Player Has:", player_card) 
-        print("Score Of The Player:", player_score) 
-        print("It's a tie.")
+        game_text = "Cards Dealer Has:", dealer_card
+        game_text = "Score Of The Dealer:", dealer_score
+        game_text = "Cards Player Has:", player_card
+        game_text = "Score Of The Player:", player_score
+        game_text = "It's a tie."
 
-
-pygame.init()
 
 #GREEN CODE: does not work, or work on it later
 
@@ -207,7 +221,7 @@ def draw_text(text, font, text_col, x, y):
 
 running = True
 while running:
-    text = font.render('GeeksForGeeks', True, green, blue)
+    text = font.render("game_text", True, green, blue)
     textRect = text.get_rect()
     textRect.center = (WIDTH // 2, HEIGHT// 2)
     # EVENT HANDLING
@@ -252,6 +266,7 @@ while running:
         #if game not paused, draw pause button + other functions - Regulus PUT GAME HERE, PLAY HERE
         else:
             display_surface.blit(text, textRect)
+            game_start()
             if pause_btn.draw(screen):
                 game_paused = True
     elif game_state == 'starting screen':
