@@ -15,12 +15,6 @@ clock = pygame.time.Clock()
 game_state = 'starting screen'
 game_paused = False
 menu_state = 'main'
-#[gold, powerups, tokens]
-STATS = [100, 0, 0]
-#[powerup price, token price]
-PRICES = [5, 10]
-
-shopping = True
 
 #define font
 font = pygame.font.SysFont("arialblack", 40)
@@ -90,8 +84,6 @@ shop_btn = Button(535, 480, shop_img, 1)
 #sprite instances
 question_btn = Button(60, 80, question_img, 1)
 
-ITEMS = [question_btn]
-
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x,y))
@@ -99,41 +91,11 @@ def draw_text(text, font, text_col, x, y):
 # #display time for text
 # display_time = 0
 
-#Shop function
+#shop function - Regulus
 def shop():
-    while shopping:
-        # for i in range(len(ITEMS)):
-        #     print(f"{i + 1}. {ITEMS[i]} - {PRICES[i]} tokens")
-        item = int(input('what item would you like to get? (1. Powerup, 2. Token, 3. Quit): ' ))
-        if item == 3: 
-            game_state = 'starting screen'
-            break
-        buying = item_price(item)
-        Gold = STATS[0]
-        Powerups = STATS[1]
-        Tokens = STATS[2]
-        print(f"Gold: {Gold}\nPowerups: {Powerups}\nTokens: {Tokens}")
-    
-    Gold = STATS[0]
-    Powerups = STATS[1]
-    Tokens = STATS[2]
-    print(f"Gold: {Gold}\nPowerups: {Powerups}\nTokens: {Tokens}")
-   
-def item_price(item):
-    if item == 1:
-        if STATS[0] > 50:
-            STATS[0] -= PRICES[0]
-            STATS[1] += 1
-        else: 
-            print("not enough gold!")
-    elif item == 2:
-        if STATS[0] > 50:
-            STATS[0] -= PRICES[1]
-            STATS[2] += 1
-        else:
-            print("not enough gold!")
-    else:
-        print("invalid")
+    screen.fill("lightblue")
+    if question_btn.draw(screen):
+        print("powerup" * 5)
 
 running = True
 while running:
@@ -147,9 +109,6 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(event.pos)
     #display_time += 1
-
-    # DRAWING
-    screen.fill((52, 78, 91))
 
     # if display_time >= 100:
     #     game_paused = True
@@ -165,11 +124,11 @@ while running:
             print("Instr")
         
         if shop_btn.draw(screen):
-            print("Shop")
             game_state = 'shop'
 
     #if game is paused, activate menu - partly Coding With Russ, partly Regulus
     elif game_state == 'playing':
+        screen.fill((52, 78, 91))
         if game_paused == True: #IMPORTANT IMPORTANT TMSFDOPSP
             #check main state
             if menu_state == "main": 
@@ -192,19 +151,15 @@ while running:
                     menu_state = "main"
         #if game not paused, draw pause button + other functions - Regulus PUT GAME HERE, PLAY HERE
         else:
+            draw_text("I am a powerup", font, TEXT_COL, 160, 250)
             if pause_btn.draw(screen):
                 game_paused = True
-       
             #Darren put the game here
     
     if game_state == 'shop':
-        screen.fill("lightblue")
-        shopping = True
         shop()
         if back_btn.draw(screen):
             game_state = "starting screen"
-        question_btn.draw(screen)
-
 
     pygame.display.flip()
     clock.tick(30)
