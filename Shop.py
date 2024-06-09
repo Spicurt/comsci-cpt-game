@@ -12,14 +12,23 @@ screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
 #game variables
+TOKENS = 40
 game_state = 'starting screen'
 game_paused = False
 menu_state = 'main'
+#powerup 1, powerup 2
+SHOP_ITEMS = [0, 0]
+PRICES = [5, 10]
 
 #define font
 font = pygame.font.SysFont("arialblack", 40)
 #define color
 TEXT_COL = (255, 255, 255)
+
+#Text function
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x,y))
 
 #Button Class - Coding With Russ
 class Button():
@@ -84,18 +93,32 @@ shop_btn = Button(535, 480, shop_img, 1)
 #sprite instances
 question_btn = Button(60, 80, question_img, 1)
 
-def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True, text_col)
-    screen.blit(img, (x,y))
-
-# #display time for text
-# display_time = 0
+# #display time for text - Regulus
+display_time = 0
 
 #shop function - Regulus
 def shop():
     screen.fill("lightblue")
+    draw_text(f"{TOKENS}", font, TEXT_COL, 1000, 250)
+    for i in range(len(PRICES)):
+        if i == 0:
+            draw_text(f"{PRICES[i]}", font, TEXT_COL, 700, 250)
+        if i == 1:
+            draw_text(f"{PRICES[i]}", font, TEXT_COL, 400, 250)
+    
     if question_btn.draw(screen):
         print("powerup" * 5)
+        paying1()   
+
+def paying1():
+    if TOKENS > 50:
+        # TOKENS -= PRICES[0] #ASK FOR HELP. Why doesn't this work?
+        SHOP_ITEMS[0] += 1
+    else:
+        display_time = 0
+        if display_time < 100:
+            draw_text("Not enough tokens!", font, TEXT_COL, 160, 250) #ASK FOR HELP. How to draw the text?
+        
 
 running = True
 while running:
@@ -108,7 +131,7 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(event.pos)
-    #display_time += 1
+    display_time += 1
 
     # if display_time >= 100:
     #     game_paused = True
@@ -126,8 +149,8 @@ while running:
         if shop_btn.draw(screen):
             game_state = 'shop'
 
-    #if game is paused, activate menu - partly Coding With Russ, partly Regulus
-    elif game_state == 'playing':
+    #if game is paused, activate menu - Regulus
+    elif game_state == 'playing': #- Regulus
         screen.fill((52, 78, 91))
         if game_paused == True: #IMPORTANT IMPORTANT TMSFDOPSP
             #check main state
@@ -150,8 +173,8 @@ while running:
                 if back_btn.draw(screen):
                     menu_state = "main"
         #if game not paused, draw pause button + other functions - Regulus PUT GAME HERE, PLAY HERE
-        else:
-            draw_text("I am a powerup", font, TEXT_COL, 160, 250)
+        else: #- Regulus
+            draw_text(f"I am a powerup", font, TEXT_COL, 160, 250)
             if pause_btn.draw(screen):
                 game_paused = True
             #Darren put the game here
