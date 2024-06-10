@@ -12,7 +12,7 @@ screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
 #game variables
-TOKENS = 40
+TOKENS = 50
 game_state = 'starting screen'
 game_paused = False
 menu_state = 'main'
@@ -22,6 +22,7 @@ PRICES = [5, 10]
 
 #define font
 font = pygame.font.SysFont("arialblack", 40)
+font2 = pygame.font.SysFont("arvo", 13)
 #define color
 TEXT_COL = (255, 255, 255)
 
@@ -93,32 +94,40 @@ shop_btn = Button(535, 480, shop_img, 1)
 #sprite instances
 question_btn = Button(60, 80, question_img, 1)
 
-# #display time for text - Regulus
-display_time = 0
+# Display time for text - Chat GPT
+show_error = False
+error_start_time = 0
+ERROR_DISPLAY_DURATION = 2000  # 2 seconds
 
-#shop function - Regulus
+# Display time for text 2 - Regulus
+show_error2 = False
+error_start_time2 = 0
+ERROR_DISPLAY_DURATION2 = 2000  # 2 seconds
+
+# Shop function - Regulus
 def shop():
     screen.fill("lightblue")
     draw_text(f"{TOKENS}", font, TEXT_COL, 1000, 250)
-    for i in range(len(PRICES)):
+    for i in range(len(SHOP_ITEMS)):
         if i == 0:
-            draw_text(f"{PRICES[i]}", font, TEXT_COL, 700, 250)
+            draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 700, 250)
         if i == 1:
-            draw_text(f"{PRICES[i]}", font, TEXT_COL, 400, 250)
+            draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 700, 500)
     
     if question_btn.draw(screen):
-        print("powerup" * 5)
-        paying1()   
+        paying1()
 
 def paying1():
+    global TOKENS, show_error, error_start_time
     if TOKENS > 50:
-        # TOKENS -= PRICES[0] #ASK FOR HELP. Why doesn't this work?
+        TOKENS -= PRICES[0]
         SHOP_ITEMS[0] += 1
     else:
-        display_time = 0
-        if display_time < 100:
-            draw_text("Not enough tokens!", font, TEXT_COL, 160, 250) #ASK FOR HELP. How to draw the text?
-        
+        show_error = True
+        error_start_time = pygame.time.get_ticks()
+        #Put this with other button
+        # show_error2 = True
+        # error_start_time2 = pygame.time.get_ticks()
 
 running = True
 while running:
@@ -131,10 +140,6 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(event.pos)
-    display_time += 1
-
-    # if display_time >= 100:
-    #     game_paused = True
 
     #starting screen - Regulus
     if game_state == 'starting screen':
@@ -183,6 +188,22 @@ while running:
         shop()
         if back_btn.draw(screen):
             game_state = "starting screen"
+
+#Show error - chatgpt
+    if show_error:
+        current_time = pygame.time.get_ticks()
+        if current_time - error_start_time < ERROR_DISPLAY_DURATION:
+            draw_text("Not enough tokens!", font, TEXT_COL, 160, 250)
+        else:
+            show_error = False
+
+#Show error 2 - Regulus
+    if show_error2:
+        current_time2 = pygame.time.get_ticks()
+        if current_time2 - error_start_time2 < ERROR_DISPLAY_DURATION2:
+            draw_text("Not enough tokens!", font, TEXT_COL, 400, 250)
+        else:
+            show_error = False
 
     pygame.display.flip()
     clock.tick(30)
