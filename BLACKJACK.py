@@ -1,4 +1,6 @@
-import pygame, random, sys
+import pygame, random
+from pygame.locals import *
+
 pygame.init()
 font = pygame.font.Font('freesansbold.ttf', 32)
 card_categories = ['Hearts', 'Diamonds', 'Clubs', 'Spades'] 
@@ -32,109 +34,7 @@ def card_value(hand):
     return sum
 
 def game_start():
-    global high_score
-    global chips
-    global bet
-    random.shuffle(deck) 
-    dealer_card = [deck.pop(), deck.pop()]
-    player_card = [deck.pop(), deck.pop()] 
-    text = font.render("game_text", True, green, blue)
-    textRect = text.get_rect()
-    textRect.center = (WIDTH // 2, HEIGHT// 2)
-    player_score = card_value(player_card)
-    dealer_score = card_value(dealer_card)
-    text = font.render("Cards Player Has: " + str(player_card) + " Score Of The Player: " + str(player_score), True, green, blue)
-    if player_score > 21:
-        text = font.render("You have exceeded 21. Press 1 to continue", True, green, blue)
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_1:
-                print("works")
-        elif player_score == 21:
-            print("works")
-        elif dealer_score > 21:
-            text = font.render("The dealer has exceeded 21. Press 1 to continue", True, green, blue)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_1:
-                    print("works")
-        else:
-            text = font.render("Hit or Stand? H/S", True, green, blue) 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_h:
-                    new_card = deck.pop() 
-                    player_card.append(new_card) 
-                elif event.key == pygame.K_s: 
-                    print('works')
-                else: 
-                    game_text = "Invalid choice. Please try again."
-    if player_score > 21:
-        text = font.render("You have exceeded 21. Press 1 to continue", True, green, blue)
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_1:
-                print("works")
-        elif player_score == 21:
-            print("works")
-        elif dealer_score > 21:
-            text = font.render("The dealer has exceeded 21. Press 1 to continue", True, green, blue)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_1:
-                    print("works")              
-
-    while dealer_score < 17: 
-        new_card = deck.pop() 
-        dealer_card.append(new_card) 
-        dealer_score = card_value(dealer_card)
-        pygame.display.flip()
-        clock.tick(30)
-    game_text ="Cards Dealer Has:", dealer_card
-    game_text ="Score Of The Dealer:", dealer_score
-    
-    if dealer_score > 21 and player_score > 21: 
-        game_text = "Cards Dealer Has:", dealer_card
-        game_text = "Score Of The Dealer:", dealer_score
-        game_text = "Cards Player Has:", player_card
-        game_text = "Score Of The Player:", player_score
-        game_text = "It's a tie."
-    elif dealer_score > 21: 
-        game_text = "Cards Dealer Has:", dealer_card
-        game_text = "Score Of The Dealer:", dealer_score 
-        game_text = "Cards Player Has:", player_card
-        game_text = "Score Of The Player:", player_score
-        game_text = "Player wins (Dealer Loss Because Dealer Score is exceeding 21)"
-        chips += bet*2
-        bet = 0
-        if chips >= high_score:
-            high_score = chips
-    elif player_score > 21: 
-        game_text = "Cards Dealer Has:", dealer_card
-        game_text = "Score Of The Dealer:", dealer_score
-        game_text = "Cards Player Has:", player_card 
-        game_text = "Score Of The Player:", player_score 
-        game_text = "Dealer wins (Player Loss Because Player Score is exceeding 21)"
-        bet = 0
-    elif player_score > dealer_score: 
-        game_text = "Cards Dealer Has:", dealer_card
-        game_text = "Score Of The Dealer:", dealer_score 
-        game_text = "Cards Player Has:", player_card
-        game_text = "Score Of The Player:", player_score
-        game_text = "Player wins (Player Has High Score than Dealer)"
-        chips += bet*2
-        bet = 0 
-        if chips >= high_score:
-            high_score = chips
-    elif dealer_score > player_score: 
-        game_text = "Cards Dealer Has:", dealer_card
-        game_text = "Score Of The Dealer:", dealer_score
-        game_text = "Cards Player Has:", player_card
-        game_text = "Score Of The Player:", player_score 
-        game_text = "Dealer wins (Dealer Has High Score than Player)"
-        bet = 0
-    else: 
-        game_text = "Cards Dealer Has:", dealer_card
-        game_text = "Score Of The Dealer:", dealer_score
-        game_text = "Cards Player Has:", player_card
-        game_text = "Score Of The Player:", player_score
-        game_text = "It's a tie."
-
+    print("")
 
 #GREEN CODE: does not work, or work on it later
 
@@ -149,6 +49,7 @@ clock = pygame.time.Clock()
 game_state = 'starting screen'
 game_paused = False
 menu_state = 'main'
+game_phase = "Dealing"
 
 #define font
 font = pygame.font.SysFont("arialblack", 40)
@@ -264,9 +165,144 @@ while running:
                 if back_btn.draw(screen):
                     menu_state = "main"
         #if game not paused, draw pause button + other functions - Regulus PUT GAME HERE, PLAY HERE
-        else:
+        elif game_paused == False:
             display_surface.blit(text, textRect)
-            game_start()
+            random.shuffle(deck)
+            pygame.event.clear()
+            event = pygame.event.wait()
+            while game_phase == "Dealing":
+                dealer_card = [deck.pop(), deck.pop()]
+                player_card = [deck.pop(), deck.pop()] 
+                text = font.render("Dealing Cards... (1 to continue)", True, green, blue)
+                textRect = text.get_rect()
+                textRect.center = (WIDTH // 2, HEIGHT// 2)
+                if event.type == KEYDOWN and event.key == K_1:
+                    game_phase == "Action"
+            player_score = 0
+            dealer_score = 0
+            while game_phase == "Action":
+                for event in pygame.event.get():
+                    player_score = card_value(player_card)
+                    dealer_score = card_value(dealer_card)
+                    text = font.render("Cards Player Has: " + str(player_card) + " Score Of The Player: " + str(player_score), True, green, blue)
+                    if player_score > 21:
+                        text = font.render("You have exceeded 21. Press 1 to continue", True, green, blue)
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_1:
+                                print("works")
+                                game_phase == "End"
+                    elif player_score == 21:
+                        game_phase == "End"
+                    elif dealer_score > 21:
+                        text = font.render("The dealer has exceeded 21. Press 1 to continue", True, green, blue)
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_1:
+                                game_phase == "End"
+                    else:
+                        for event in pygame.event.get():
+                            if dealer_score < 17:
+                                new_card = deck.pop() 
+                                dealer_card.append(new_card) 
+                                dealer_score = card_value(dealer_card)
+                            else:
+                                break
+                        text = font.render("Hit or Stand? H/S", True, green, blue) 
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_h:
+                                new_card = deck.pop() 
+                                player_card.append(new_card) 
+                            elif event.key == pygame.K_s: 
+                                print('works')
+                                game_phase == "End"
+                            else: 
+                                text = font.render("Invalid choice. Please try again.", True, green, blue)            
+            while game_phase == "End":   
+                game_text ="Cards Dealer Has:", dealer_card
+                text = font.render(game_text, True, green, blue)
+                game_text ="Score Of The Dealer:", dealer_score
+                text = font.render(game_text, True, green, blue)
+                if dealer_score > 21 and player_score > 21: 
+                    game_text = "Cards Dealer Has:", dealer_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Dealer:", dealer_score
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Cards Player Has:", player_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Player:", player_score
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "It's a tie."
+                    text = font.render(game_text, True, green, blue)
+                    game_phase == "Interval"
+                elif dealer_score > 21: 
+                    game_text = "Cards Dealer Has:", dealer_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Dealer:", dealer_score
+                    text = font.render(game_text, True, green, blue) 
+                    game_text = "Cards Player Has:", player_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Player:", player_score
+                    text = font.render(game_text, True, green, blue)
+                    text = font.render("Player wins (Dealer Loss Because Dealer Score is exceeding 21)", True, green, blue)
+                    chips += bet*2
+                    bet = 0
+                    if chips >= high_score:
+                        high_score = chips
+                        game_phase == "Interval"
+                    else:
+                        game_phase == "Interval"
+                elif player_score > 21: 
+                    game_text = "Cards Dealer Has:", dealer_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Dealer:", dealer_score
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Cards Player Has:", player_card 
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Player:", player_score
+                    text = font.render(game_text, True, green, blue) 
+                    text = font.render("Dealer wins (Player Loss Because Player Score is exceeding 21)", True, green, blue)
+                    bet = 0
+                    game_phase == "Interval"
+                elif player_score > dealer_score: 
+                    game_text = "Cards Dealer Has:", dealer_card
+                    text = font.render(game_text, True, green, blue) 
+                    game_text = "Score Of The Dealer:", dealer_score 
+                    text = font.render(game_text, True, green, blue) 
+                    game_text = "Cards Player Has:", player_card
+                    text = font.render(game_text, True, green, blue) 
+                    game_text = "Score Of The Player:", player_score
+                    text = font.render(game_text, True, green, blue)
+                    text = font.render("Player wins (Player Has High Score than Dealer)", True, green, blue) 
+                    chips += bet*2
+                    bet = 0 
+                    if chips >= high_score:
+                        high_score = chips
+                        game_phase == "Interval"
+                    else:
+                        game_phase == "Interval"
+                elif dealer_score > player_score: 
+                    game_text = "Cards Dealer Has:", dealer_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Dealer:", dealer_score
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Cards Player Has:", player_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Player:", player_score
+                    text = font.render(game_text, True, green, blue) 
+                    text = font.render("Dealer wins (Dealer Has High Score than Player)", True, green, blue)
+                    bet = 0
+                    game_phase == "Interval"
+                else: 
+                    game_text = "Cards Dealer Has:", dealer_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Dealer:", dealer_score
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Cards Player Has:", player_card
+                    text = font.render(game_text, True, green, blue)
+                    game_text = "Score Of The Player:", player_score
+                    text = font.render(game_text, True, green, blue)
+                    text = font.render("It's a tie.", True, green, blue)
+                    game_phase == "Interval"
+
             if pause_btn.draw(screen):
                 game_paused = True
     elif game_state == 'starting screen':
