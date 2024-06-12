@@ -149,7 +149,7 @@ while running:
             game_state = 'playing'
 
         if instr_btn.draw(screen):
-            print("Instr")
+            game_state = "instructions"
         
         if shop_btn.draw(screen):
             game_state = 'shop'
@@ -186,6 +186,11 @@ while running:
     
     if game_state == 'shop':
         shop()
+        if back_btn.draw(screen):
+            game_state = "starting screen"
+    
+    if game_state =="instructions":
+        screen.fill("lightpink")
         if back_btn.draw(screen):
             game_state = "starting screen"
 
