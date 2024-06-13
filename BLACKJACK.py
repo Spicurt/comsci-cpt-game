@@ -1,8 +1,9 @@
-import pygame, random, sys
+import pygame, random
 from pygame.locals import *
 
 pygame.init()
-font = pygame.font.Font('freesansbold.ttf', 32)
+
+font = pygame.font.Font('freesansbold.ttf', 32) #I already made a font ??
 card_categories = ['Hearts', 'Diamonds', 'Clubs', 'Spades'] 
 cards_list = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King'] 
 deck = [(card, category) for category in card_categories for card in cards_list]
@@ -45,17 +46,27 @@ SIZE = (WIDTH, HEIGHT)
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
-
 #game variables
 game_state = 'starting screen'
 game_paused = False
 menu_state = 'main'
-game_phase = "Wager"
+game_phase = "Dealing"
+#powerup 1, powerup 2
+SHOP_ITEMS = [0, 0]
+PRICES = [5, 10]
 
 #define font
 font = pygame.font.SysFont("arialblack", 40)
+font2 = pygame.font.SysFont("arvo", 13)
 #define color
 TEXT_COL = (255, 255, 255)
+TEXT_COL3 = ("gray0")
+TEXT_COL2 = ("darkgoldenrod1")
+
+#Text function
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x,y))
 
 #Button Class - Coding With Russ
 class Button():
@@ -91,7 +102,7 @@ class Button():
 #Button images
 resume_img = pygame.image.load("button_sprites/resume.png").convert_alpha()
 options_img = pygame.image.load("button_sprites/menu.png").convert_alpha()
-quit_img = pygame.image.load("button_sprites/exit.png").convert_alpha()
+quit_img = pygame.image.load("button_sprites/quit.png").convert_alpha()
 video_img = pygame.image.load('button_sprites/video.png').convert_alpha()
 audio_img = pygame.image.load('button_sprites/audio.png').convert_alpha() #red
 keys_img = pygame.image.load('button_sprites/keys.png').convert_alpha() #green
@@ -101,25 +112,63 @@ start_img = pygame.image.load('button_sprites/new.png').convert_alpha() #red
 instr_img = pygame.image.load('button_sprites/instr.png').convert_alpha()
 shop_img = pygame.image.load('button_sprites/shop.png').convert_alpha()
 
+#sprites
+question_img = pygame.image.load("button_sprites/question_card.png").convert_alpha()
+
 #Button instances
-resume_btn = Button(60, 80, resume_img, 1)
-options_btn = Button(60, 220, options_img, 1)
-quit_btn = Button(60, 370, quit_img, 1)
-video_btn = Button(400, 75, video_img, 1)
-audio_btn = Button(400, 200, audio_img, 1)
-keys_btn = Button(400, 325, keys_img, 1)
-back_btn = Button(1, 1, back_img, 0.8)
-pause_btn = Button(1, 1, pause_img, 0.8)
-start_btn = Button(200, 45, start_img, 1)
-instr_btn = Button(190, 195, instr_img, 1)
-shop_btn = Button(240, 345, shop_img, 1)
+resume_btn = Button(200, 80, resume_img, 1)
+options_btn = Button(200, 220, options_img, 1)
+quit_btn = Button(200, 370, quit_img, 1)
+video_btn = Button(WIDTH -300, 75, video_img, 1)
+audio_btn = Button(WIDTH -300, 200, audio_img, 1)
+keys_btn = Button(WIDTH -300, 325, keys_img, 1)
+back_btn = Button(20, 20, back_img, 0.8)
+pause_btn = Button(20, 20, pause_img, 0.8)
+start_btn = Button(500, 120, start_img, 1)
+instr_btn = Button(492, 300, instr_img, 1)
+shop_btn = Button(535, 480, shop_img, 1)
 
-def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True, text_col)
-    screen.blit(img, (x,y))
+#sprite instances
+question_btn = Button(200, 200, question_img, 0.5)
+pwerup_sprite = Button(1100, 500, question_img, 0.2)
 
-# #display time for text
-# display_time = 0
+# Display time for text - Chat GPT
+show_error = False
+error_start_time = 0
+ERROR_DISPLAY_DURATION = 2000  # 2 seconds
+
+# Display time for text 2 - Regulus
+show_error2 = False
+error_start_time2 = 0
+ERROR_DISPLAY_DURATION2 = 2000  # 2 seconds
+
+# Shop function - Regulus
+def shop():
+    screen.fill("lightblue")
+    draw_text(f"{TOKENS}", font, TEXT_COL2, 1100, 40)
+    draw_text("Tokens:", font, TEXT_COL2, 900, 40)
+    for i in range(len(SHOP_ITEMS)):
+        if i == 0:
+            draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 1140, 600)
+            pwerup_sprite.draw(screen)
+
+        if i == 1:
+            draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 930, 600)
+    
+    if question_btn.draw(screen):
+        paying1()
+
+def paying1():
+    global TOKENS, show_error, error_start_time
+    if TOKENS > 50:
+        TOKENS -= PRICES[0]
+        SHOP_ITEMS[0] += 1
+    else:
+        show_error = True
+        error_start_time = pygame.time.get_ticks()
+        #Put this with other button
+        # show_error2 = True
+        # error_start_time2 = pygame.time.get_ticks()
 
 running = True
 while running:
@@ -135,17 +184,24 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(event.pos)
-    #display_time += 1
 
-    # DRAWING
-    screen.fill((52, 78, 91))
+    #starting screen - Regulus
+    if game_state == 'starting screen':
+        screen.fill('seagreen') 
 
-    # if display_time >= 100:
-    #     game_paused = True
+        if start_btn.draw(screen):
+            game_state = 'playing'
 
-    #if game is paused, activate menu - partly Coding With Russ partly Regulus
-    if game_state == 'playing':
-        if game_paused == True: #IMPORTANT
+        if instr_btn.draw(screen):
+            game_state = "instructions"
+        
+        if shop_btn.draw(screen):
+            game_state = 'shop'
+
+    #if game is paused, activate menu - Regulus
+    elif game_state == 'playing': #- Regulus
+        screen.fill((52, 78, 91))
+        if game_paused == True: #IMPORTANT IMPORTANT TMSFDOPSP
             #check main state
             if menu_state == "main": 
                 #draw pause screen buttons 
@@ -166,78 +222,61 @@ while running:
                 if back_btn.draw(screen):
                     menu_state = "main"
 
-        elif game_paused == False:
+        #if game not paused, draw pause button + other functions - Regulus PUT GAME HERE, PLAY HERE
+        else: #- Regulus
+            if pause_btn.draw(screen):
+                game_paused = True
             display_surface.blit(text, textRect)
-            if game_phase == "Wager":
-                player_score = 0
-                dealer_score = 0
-                game_phase = "Dealing"
-            elif game_phase == "Dealing":
-                random.shuffle(deck)
+            random.shuffle(deck)
+            pygame.event.clear()
+            event = pygame.event.wait()
+            while game_phase == "Dealing":
                 dealer_card = [deck.pop(), deck.pop()]
                 player_card = [deck.pop(), deck.pop()] 
-                text = font.render("Dealing Cards ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards. ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards.. ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards... ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards. ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards.. ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards... ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards. ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards.. ", True, green, blue)
-                pygame.time.wait(500)
-                text = font.render("Dealing Cards... ", True, green, blue)
-                pygame.time.wait(500)
+                text = font.render("Dealing Cards... (1 to continue)", True, green, blue)
                 textRect = text.get_rect()
                 textRect.center = (WIDTH // 2, HEIGHT// 2)
-                game_phase = "Interval"
-            elif game_phase == "Interval":
-                player_score = card_value(player_card)
-                dealer_score = card_value(dealer_card)
-                text = font.render("Cards Player Has: " + str(player_card) + " Score Of The Player: " + str(player_score), True, green, blue)
-                pygame.time.wait(5000)                
-                if player_score > 21:
-                    text = font.render("You have exceeded 21", True, green, blue)
-                    pygame.time.wait(5000)
-                    game_phase = "End"
-                elif player_score == 21:
-                    text = font.render("You have reached 21. Not point in going further", True, green, blue)
-                    pygame.time.wait(5000)
-                    game_phase = "End"
-                elif dealer_score > 21:
-                    text = font.render("The dealer has exceeded 21.", True, green, blue)
-                    pygame.time.wait(5000)
-                    game_phase = "End"
-                else:
-                    game_phase = "Action"
-            elif game_phase == "Action":
-                if dealer_score < 17:
-                    new_card = deck.pop() 
-                    dealer_card.append(new_card) 
+                if event.type == KEYDOWN and event.key == K_1:
+                    game_phase == "Action"
+            player_score = 0
+            dealer_score = 0
+            while game_phase == "Action":
+                for event in pygame.event.get():
+                    player_score = card_value(player_card)
                     dealer_score = card_value(dealer_card)
-                text = font.render("Hit or Stand? H/S", True, green, blue) 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_h:
-                        new_card = deck.pop() 
-                        player_card.append(new_card) 
-                    elif event.key == pygame.K_s: 
-                        print('works')
-                        game_phase = "End"
-                    else: 
-                        text = font.render("Invalid choice. Please try again.", True, green, blue)            
-            elif game_phase == "End":   
+                    text = font.render("Cards Player Has: " + str(player_card) + " Score Of The Player: " + str(player_score), True, green, blue)
+                    if player_score > 21:
+                        text = font.render("You have exceeded 21. Press 1 to continue", True, green, blue)
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_1:
+                                print("works")
+                                game_phase == "End"
+                    elif player_score == 21:
+                        game_phase == "End"
+                    elif dealer_score > 21:
+                        text = font.render("The dealer has exceeded 21. Press 1 to continue", True, green, blue)
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_1:
+                                game_phase == "End"
+                    else:
+                        for event in pygame.event.get():
+                            if dealer_score < 17:
+                                new_card = deck.pop() 
+                                dealer_card.append(new_card) 
+                                dealer_score = card_value(dealer_card)
+                            else:
+                                break
+                        text = font.render("Hit or Stand? H/S", True, green, blue) 
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_h:
+                                new_card = deck.pop() 
+                                player_card.append(new_card) 
+                            elif event.key == pygame.K_s: 
+                                print('works')
+                                game_phase == "End"
+                            else: 
+                                text = font.render("Invalid choice. Please try again.", True, green, blue)            
+            while game_phase == "End":   
                 game_text ="Cards Dealer Has:", dealer_card
                 text = font.render(game_text, True, green, blue)
                 game_text ="Score Of The Dealer:", dealer_score
@@ -253,7 +292,7 @@ while running:
                     text = font.render(game_text, True, green, blue)
                     game_text = "It's a tie."
                     text = font.render(game_text, True, green, blue)
-                    game_phase = "Wager"
+                    game_phase == "Interval"
                 elif dealer_score > 21: 
                     game_text = "Cards Dealer Has:", dealer_card
                     text = font.render(game_text, True, green, blue)
@@ -268,9 +307,9 @@ while running:
                     bet = 0
                     if chips >= high_score:
                         high_score = chips
-                        game_phase = "Wager"
+                        game_phase == "Interval"
                     else:
-                        game_phase = "Wager"
+                        game_phase == "Interval"
                 elif player_score > 21: 
                     game_text = "Cards Dealer Has:", dealer_card
                     text = font.render(game_text, True, green, blue)
@@ -282,7 +321,7 @@ while running:
                     text = font.render(game_text, True, green, blue) 
                     text = font.render("Dealer wins (Player Loss Because Player Score is exceeding 21)", True, green, blue)
                     bet = 0
-                    game_phase = "Wager"
+                    game_phase == "Interval"
                 elif player_score > dealer_score: 
                     game_text = "Cards Dealer Has:", dealer_card
                     text = font.render(game_text, True, green, blue) 
@@ -297,9 +336,9 @@ while running:
                     bet = 0 
                     if chips >= high_score:
                         high_score = chips
-                        game_phase = "Wager"
+                        game_phase == "Interval"
                     else:
-                        game_phase = "Wager"
+                        game_phase == "Interval"
                 elif dealer_score > player_score: 
                     game_text = "Cards Dealer Has:", dealer_card
                     text = font.render(game_text, True, green, blue)
@@ -311,7 +350,7 @@ while running:
                     text = font.render(game_text, True, green, blue) 
                     text = font.render("Dealer wins (Dealer Has High Score than Player)", True, green, blue)
                     bet = 0
-                    game_phase = "Wager"
+                    game_phase == "Interval"
                 else: 
                     game_text = "Cards Dealer Has:", dealer_card
                     text = font.render(game_text, True, green, blue)
@@ -322,23 +361,33 @@ while running:
                     game_text = "Score Of The Player:", player_score
                     text = font.render(game_text, True, green, blue)
                     text = font.render("It's a tie.", True, green, blue)
-                    game_phase = "Wager"
+                    game_phase == "Interval"
 
-            if pause_btn.draw(screen):
-                game_paused = True
-    elif game_state == 'starting screen':
-        screen.fill('seagreen') 
+    if game_state == 'shop':
+        shop()
+        if back_btn.draw(screen):
+            game_state = "starting screen"
+    
+    if game_state == "instructions":
+        screen.fill("lightpink")
+        if back_btn.draw(screen):
+            game_state = "starting screen"
 
-        if start_btn.draw(screen):
-            game_state = 'playing'
+    #Show error - chatgpt
+    if show_error:
+        current_time = pygame.time.get_ticks()
+        if current_time - error_start_time < ERROR_DISPLAY_DURATION:
+            draw_text("Not enough tokens!", font, TEXT_COL, 160, 250)
+        else:
+            show_error = False
 
-        if instr_btn.draw(screen):
-            print("Instr")
-        
-        if shop_btn.draw(screen):
-            print("Shop")
-            #menu_state = 'shop'
-
+#Show error 2 - Regulus
+    if show_error2:
+        current_time2 = pygame.time.get_ticks()
+        if current_time2 - error_start_time2 < ERROR_DISPLAY_DURATION2:
+            draw_text("Not enough tokens!", font, TEXT_COL, 400, 250)
+        else:
+            show_error = False
 
     pygame.display.flip()
     clock.tick(30)
