@@ -1,30 +1,40 @@
+import random
+import os
+import sys
 import pygame
+from pygame.locals import *
+pygame.font.init()
+pygame.mixer.init()
 
 pygame.init()
 
 #GREEN CODE: does not work, or work on it later
 
 WIDTH = 1280
-HEIGHT = 720
+HEIGHT = 700
 SIZE = (WIDTH, HEIGHT)
 
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
 #game variables
-TOKENS = 50
+CHIPS = 1000
 game_state = 'starting screen'
 game_paused = False
 menu_state = 'main'
 #powerup 1, powerup 2
 SHOP_ITEMS = [0, 0]
-PRICES = [5, 10]
+PRICES = [500, 10]
 
 #define font
-font = pygame.font.SysFont("arialblack", 40)
+font = pygame.font.SysFont("serif", 40)
 font2 = pygame.font.SysFont("arvo", 13)
+font3 = pygame.font.SysFont("arialblack", 40)
+
 #define color
 TEXT_COL = (255, 255, 255)
+TEXT_COL3 = ("gray0")
+TEXT_COL2 = ("darkgoldenrod1")
 
 #Text function
 def draw_text(text, font, text_col, x, y):
@@ -77,6 +87,7 @@ shop_img = pygame.image.load('button_sprites/shop.png').convert_alpha()
 
 #sprites
 question_img = pygame.image.load("button_sprites/question_card.png").convert_alpha()
+starting_img = pygame.image.load("images/cards/back.png").convert_alpha()
 
 #Button instances
 resume_btn = Button(200, 80, resume_img, 1)
@@ -92,35 +103,42 @@ instr_btn = Button(492, 300, instr_img, 1)
 shop_btn = Button(535, 480, shop_img, 1)
 
 #sprite instances
-question_btn = Button(60, 80, question_img, 1)
+question_btn = Button(200, 200, question_img, 0.5)
+pwerup_sprite = Button(1100, 500, question_img, 0.2)
 
 # Display time for text - Chat GPT
 show_error = False
 error_start_time = 0
-ERROR_DISPLAY_DURATION = 2000  # 2 seconds
+ERROR_DISPLAY_DURATION = 500 
 
 # Display time for text 2 - Regulus
 show_error2 = False
 error_start_time2 = 0
-ERROR_DISPLAY_DURATION2 = 2000  # 2 seconds
+ERROR_DISPLAY_DURATION2 = 500 
 
 # Shop function - Regulus
 def shop():
     screen.fill("lightblue")
-    draw_text(f"{TOKENS}", font, TEXT_COL, 1000, 250)
+    draw_text(f"{CHIPS}", font, TEXT_COL2, 1100, 40)
+    draw_text("CHIPS:", font, TEXT_COL2, 900, 40)
     for i in range(len(SHOP_ITEMS)):
         if i == 0:
-            draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 700, 250)
+            draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 1140, 600)
+            pwerup_sprite.draw(screen)
+
         if i == 1:
-            draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 700, 500)
+            draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 930, 600)
     
     if question_btn.draw(screen):
         paying1()
+    if video_btn.draw(screen):
+        paying2()
+    
 
 def paying1():
-    global TOKENS, show_error, error_start_time
-    if TOKENS > 50:
-        TOKENS -= PRICES[0]
+    global CHIPS, show_error, error_start_time
+    if CHIPS > 500:
+        CHIPS -= PRICES[0]
         SHOP_ITEMS[0] += 1
     else:
         show_error = True
@@ -128,6 +146,15 @@ def paying1():
         #Put this with other button
         # show_error2 = True
         # error_start_time2 = pygame.time.get_ticks()
+
+def paying2():
+    global CHIPS, show_error2, error_start_time2
+    if CHIPS > 500:
+        CHIPS -= PRICES[1]
+        SHOP_ITEMS[1] += 1
+    else:
+        show_error2 = True
+        error_start_time2 = pygame.time.get_ticks()
 
 running = True
 while running:
@@ -145,6 +172,8 @@ while running:
     if game_state == 'starting screen':
         screen.fill('seagreen') 
 
+        draw_text(f"BlackJack!", font3, TEXT_COL2, 505, 10)
+
         if start_btn.draw(screen):
             game_state = 'playing'
 
@@ -153,6 +182,15 @@ while running:
         
         if shop_btn.draw(screen):
             game_state = 'shop'
+
+        art_list = [0]
+
+        for num in art_list:
+            start_sprite = Button(num, 630, starting_img, 0.4)
+            start_sprite.draw(screen)
+            art_list.append(num + 30)
+            if num >= 1280:
+                break
 
     #if game is paused, activate menu - Regulus
     elif game_state == 'playing': #- Regulus
@@ -179,7 +217,7 @@ while running:
                     menu_state = "main"
         #if game not paused, draw pause button + other functions - Regulus PUT GAME HERE, PLAY HERE
         else: #- Regulus
-            draw_text(f"I am a powerup", font, TEXT_COL, 160, 250)
+            draw_text(f"I am a powerup", font, TEXT_COL2, 160, 250)
             if pause_btn.draw(screen):
                 game_paused = True
             #Darren put the game here
@@ -189,7 +227,7 @@ while running:
         if back_btn.draw(screen):
             game_state = "starting screen"
     
-    if game_state =="instructions":
+    if game_state == "instructions":
         screen.fill("lightpink")
         if back_btn.draw(screen):
             game_state = "starting screen"
@@ -198,7 +236,7 @@ while running:
     if show_error:
         current_time = pygame.time.get_ticks()
         if current_time - error_start_time < ERROR_DISPLAY_DURATION:
-            draw_text("Not enough tokens!", font, TEXT_COL, 160, 250)
+            draw_text("Not enough CHIPS!", font, TEXT_COL, 160, 250)
         else:
             show_error = False
 
@@ -206,7 +244,7 @@ while running:
     if show_error2:
         current_time2 = pygame.time.get_ticks()
         if current_time2 - error_start_time2 < ERROR_DISPLAY_DURATION2:
-            draw_text("Not enough tokens!", font, TEXT_COL, 400, 250)
+            draw_text("Not enough CHIPS!", font, TEXT_COL, 400, 250)
         else:
             show_error = False
 
