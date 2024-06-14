@@ -12,7 +12,7 @@ clock = pygame.time.Clock()
 #GREEN CODE: does not work, or work on it later
 
 WIDTH = 1280
-HEIGHT = 720
+HEIGHT = 700
 SIZE = (WIDTH, HEIGHT)
 
 #System functions (music, images, animations)
@@ -48,13 +48,11 @@ def display(font, sentence):
 #     clickSound = soundLoad("click2.wav")
 #     clickSound.play()
 
-CHIPS = 1000
-
 #Main game functions
 def mainGame():
-    global CHIPS
+    global CHIPS, game_paused, game_state
     def gameOver():
-
+        global CHIPS, game_paused, game_state
         while 1:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -67,6 +65,9 @@ def mainGame():
             oFont = pygame.font.Font(None, 50)
             displayFont = pygame.font.Font.render(oFont, "Game over! You're outta cash!", 1, (255,255,255), (0,0,0)) 
             screen.blit(displayFont, (125, 220))
+            if start_btn.draw(screen):
+                game_state = "starting screen"
+                CHIPS = 100
             
             pygame.display.flip()
             
@@ -112,7 +113,7 @@ def mainGame():
         cardsToDeal = 4
 
         while cardsToDeal > 0:
-            if len(deck) == 0:
+            if len(deck) == 0:  
                 deck, deadDeck = returnFromDead(deck, deadDeck)
 
             if cardsToDeal % 2 == 0: playerHand.append(deck[0])
@@ -313,7 +314,7 @@ def mainGame():
                     deck, deadDeck, roundEnd, CHIPS, displayFont = compareHands(deck, deadDeck, playerHand, dealerHand, CHIPS, bet, cards, cardSprite)
                 
             return deck, deadDeck, roundEnd, CHIPS, playerHand, deadDeck, pCardPos, displayFont 
-            
+
     class doubleButton(pygame.sprite.Sprite):
         
         def __init__(self):
@@ -456,6 +457,12 @@ def mainGame():
     cards = pygame.sprite.Group()
     playerCards = pygame.sprite.Group()
 
+    if pause_btn.draw(screen):
+        game_paused = True
+    
+    cards = pygame.sprite.Group()
+    playerCards = pygame.sprite.Group()
+
     bbU = betButtonUp()
     bbD = betButtonDown()
     standButton = standButton()
@@ -479,6 +486,9 @@ def mainGame():
     while 1:
     
         screen.blit(background, backgroundRect)
+
+        if pause_btn.draw(screen):
+            game_paused = True
         
         if bet > CHIPS:
             bet = CHIPS
@@ -532,6 +542,9 @@ def mainGame():
             playerCards.draw(screen)
             cards.update()
             cards.draw(screen)
+        
+        pygame.display.flip()
+    pygame.display.flip()
 
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
@@ -542,7 +555,8 @@ game_paused = False
 menu_state = 'main'
 #powerup 1, powerup 2
 SHOP_ITEMS = [0, 0]
-PRICES = [500, 10]
+PRICES = [20, 10]
+CHIPS = 100
 
 #define font
 font = pygame.font.SysFont("serif", 40)
@@ -603,6 +617,7 @@ shop_img = pygame.image.load('button_sprites/shop.png').convert_alpha()
 
 #sprites
 question_img = pygame.image.load("button_sprites/question_card.png").convert_alpha()
+starting_img = pygame.image.load("images/cards/back.png").convert_alpha()
 
 #Button instances
 resume_btn = Button(200, 80, resume_img, 1)
@@ -612,7 +627,7 @@ video_btn = Button(WIDTH -300, 75, video_img, 1)
 audio_btn = Button(WIDTH -300, 200, audio_img, 1)
 keys_btn = Button(WIDTH -300, 325, keys_img, 1)
 back_btn = Button(20, 20, back_img, 0.8)
-pause_btn = Button(20, 20, pause_img, 0.8)
+pause_btn = Button(800, 200, pause_img, 0.8)
 start_btn = Button(500, 120, start_img, 1)
 instr_btn = Button(492, 300, instr_img, 1)
 shop_btn = Button(535, 480, shop_img, 1)
@@ -653,7 +668,7 @@ def shop():
 
 def paying1():
     global CHIPS, show_error, error_start_time
-    if CHIPS > 500:
+    if CHIPS > 50:
         CHIPS -= PRICES[0]
         SHOP_ITEMS[0] += 1
     else:
@@ -665,7 +680,7 @@ def paying1():
 
 def paying2():
     global CHIPS, show_error2, error_start_time2
-    if CHIPS > 500:
+    if CHIPS > 50:
         CHIPS -= PRICES[1]
         SHOP_ITEMS[1] += 1
     else:
@@ -700,9 +715,10 @@ while running:
         art_list = [1]
 
         for num in art_list:
-            print(num)
-            art_list.append(num + 2)
-            if num == 11:
+            start_sprite = Button(num, 630, starting_img, 0.4)
+            start_sprite.draw(screen)
+            art_list.append(num + 30)
+            if num >= 1280:
                 break
 
     #if game is paused, activate menu - Regulus
@@ -730,17 +746,12 @@ while running:
                     menu_state = "main"
         #if game not paused, draw pause button + other functions - Regulus PUT GAME HERE, PLAY HERE
         else: #- Regulus
-            if pause_btn.draw(screen):
-                game_paused = True
             mainGame()
-            #Darren put the game here
-    
-    if game_state == 'shop':
+    elif game_state == 'shop':
         shop()
         if back_btn.draw(screen):
             game_state = "starting screen"
-    
-    if game_state == "instructions":
+    elif game_state == "instructions":
         screen.fill("lightpink")
         if back_btn.draw(screen):
             game_state = "starting screen"
