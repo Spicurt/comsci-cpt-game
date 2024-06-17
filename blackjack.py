@@ -10,6 +10,7 @@ pygame.init()
 #GREEN CODE: does not work, or work on it later
 WIDTH = 1280
 HEIGHT = 700
+bgchoice = "bjs.png"
 SIZE = (WIDTH, HEIGHT)
 money_json = {"funds":100.00, "highscore":0}
 with open('money.json', 'w') as f:
@@ -25,8 +26,6 @@ def imageLoad(name, card):
     else: 
         fullname = os.path.join('images', name)
     try:
-        f = open(fullname)
-        f.close()
         image = pygame.image.load(fullname)
     except pygame.error as message:
         print('Cannot load image:', name)
@@ -494,7 +493,7 @@ def mainGame():
     #Initializing
     textFont = pygame.font.Font(None, 28)
 
-    background, backgroundRect = imageLoad(f"{background}", 0)
+    background, backgroundRect = imageLoad(f"{bgchoice}", 0)
     
     cards = pygame.sprite.Group()
     playerCards = pygame.sprite.Group()
