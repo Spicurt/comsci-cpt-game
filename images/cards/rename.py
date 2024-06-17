@@ -4,9 +4,9 @@ import os
 
 def rename(f, longSet, set, numAdded):
     f = f[:-7]
-    print f
+    print(f)
     f = f[len(longSet):]
-    print f
+    print(f)
     numberList = range (2, 11)
     if 'j' in f: n = set + 'j' + '.png'
     elif 'q' in f: n = set + 'q' + '.png'
@@ -36,4 +36,4 @@ for f in files:
         os.rename(f, n)
         print
     except:
-        print "error: didn't rename"
+        print ("error: didn't rename")

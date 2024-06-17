@@ -25,6 +25,8 @@ def imageLoad(name, card):
     else: 
         fullname = os.path.join('images', name)
     try:
+        f = open(fullname)
+        f.close()
         image = pygame.image.load(fullname)
     except pygame.error as message:
         print('Cannot load image:', name)
@@ -690,7 +692,7 @@ question_img = pygame.image.load("button_sprites/question_card.png").convert_alp
 starting_img = pygame.image.load("images/cards/back.png").convert_alpha()
 bjs_blue_img = pygame.image.load("images/blue.png").convert_alpha()
 mystery_img = pygame.image.load("button_sprites/mystery.png").convert_alpha()
-switch_img = pygame.image.load("images/down.png").convert_alpha()
+switch_img = pygame.image.load("images/switchcolors.png").convert_alpha()
 
 #Button instances
 resume_btn = Button(200, 80, resume_img, 1)
@@ -856,6 +858,10 @@ def regulus_code():
                 if menu_state == "main":
                     #draw pause screen buttons 
                     if resume_btn.draw(screen):
+                        WIDTH = 800
+                        HEIGHT = 480
+                        SIZE = (WIDTH, HEIGHT)
+                        screen = pygame.display.set_mode(SIZE)
                         game_paused = False
                     if options_btn.draw(screen):
                         menu_state = "options"
