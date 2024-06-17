@@ -546,10 +546,12 @@ def regulus_code():
                         if player_value > BLACKJACK and in_play:
                             outcome = "Player busts! Dealer wins."
                             CHIPS -= bet
+                            save_game_state()
                             in_play = False
                         elif player_value == BLACKJACK and in_play:
                             outcome = "Blackjack! Player wins."
                             CHIPS += bet
+                            save_game_state()
                             in_play = False
 
                         if player_stands and in_play:
@@ -560,12 +562,15 @@ def regulus_code():
                             if dealer_value > BLACKJACK:
                                 outcome = "Dealer busts! Player wins."
                                 CHIPS += bet
+                                save_game_state()
                             elif dealer_value >= player_value:
                                 outcome = "Dealer wins."
                                 CHIPS -= bet
+                                save_game_state()
                             else:
                                 outcome = "Player wins."
                                 CHIPS += bet
+                                save_game_state()
                             in_play = False
 
                         if outcome:
