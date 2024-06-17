@@ -2,6 +2,8 @@ import random
 import os
 import sys
 import pygame
+import json
+import pickle
 from pygame.locals import *
 pygame.font.init()
 pygame.mixer.init()
@@ -12,34 +14,57 @@ pygame.init()
 WIDTH = 1280
 HEIGHT = 700
 SIZE = (WIDTH, HEIGHT)
-
-screen = pygame.display.set_mode(SIZE)
-
-def mainGame():
-    global background, game_paused, WIDTH, HEIGHT, SIZE
-    if background == "bjs.png":
-        screen.fill((34, 177, 76))
-    if background == "bjs2.png":
-        screen.fill((94, 254, 255))
-    if pause_btn.draw(screen):
-        game_paused = True
-
-#REGULUS'S code from here
 screen = pygame.display.set_mode(SIZE)
 clock = pygame.time.Clock()
 
-#ALL OF THESE are the variables that cannot go into the function, or are more convenient left outside
 #game variables
 game_state = 'starting screen'
 game_paused = False
 menu_state = 'main'
+sound = True
 background = "bjs.png"
 #shop variables
 SHOP_ITEMS = [0, 0, 0]
 PRICES = [20, 10, 500]
 second_item_randoms = [5, 5, 5, 10, 10, 100, -10, -10, -5, -5, 0, 0, 0]
 result = 0
-CHIPS = 1000
+CHIPS = 100
+
+# Constants
+WIDTH, HEIGHT = 1280, 700
+CARD_WIDTH, CARD_HEIGHT = 120, 180  
+BLACKJACK = 21
+DEALER_STAND = 17
+FONT_SIZE = 32
+
+data = {
+    "CHIPS": CHIPS,
+    "sound": sound,
+    "background": background,
+    "SHOP_ITEMS": SHOP_ITEMS
+}
+
+# Load card images - CHATGPT
+card_images = {}
+suits = ['H', 'D', 'C', 'S']
+ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+
+for suit in suits:
+    for rank in ranks:
+        image_path = os.path.join('images', f'{suit}{rank}.png')
+        card_images[f'{suit}{rank}'] = pygame.transform.scale(pygame.image.load(image_path), (CARD_WIDTH, CARD_HEIGHT))
+
+#fonts
+font = pygame.font.SysFont("serif", 40)
+font2 = pygame.font.SysFont("arvo", 13)
+font3 = pygame.font.SysFont("serif", 30)
+font4 = pygame.font.SysFont("serif", 60)
+
+#text color
+TEXT_COL = (255, 255, 255)
+TEXT_COL2 = ("darkgoldenrod1")
+TEXT_COL3 = ("gray0")
+TEXT_COL4 = ((147, 187, 191))
 
 # Display time for text - Chat GPT
 show_error = False
@@ -96,6 +121,25 @@ class Button():
         surface.blit(self.image, (self.rect.x, self.rect.y))
 
         return action
+    
+#drawing text - Coding With Russ
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x,y))
+
+#loading sound - Darren's code
+def soundLoad(name):    
+    fullName = os.path.join('sounds', name)
+    try: sound = pygame.mixer.Sound(fullName)
+    except pygame.error as message:
+        print('Cannot load sound:'), name
+        raise SystemExit and message
+    return sound
+
+#playing sound - Darren's code
+def playClick():
+    clickSound = soundLoad("click2.wav")
+    clickSound.play()
 
 #Button images
 resume_img = pygame.image.load("button_sprites/resume.png").convert_alpha()
@@ -109,6 +153,8 @@ pause_img = pygame.image.load("button_sprites/pause.png").convert_alpha()
 start_img = pygame.image.load('button_sprites/new.png').convert_alpha() #red
 instr_img = pygame.image.load('button_sprites/instr.png').convert_alpha()
 shop_img = pygame.image.load('button_sprites/shop.png').convert_alpha()
+mute_img = pygame.image.load('button_sprites/mute.png').convert_alpha()
+unmute_img = pygame.image.load('button_sprites/unmute.png').convert_alpha()
 
 #Sprite images
 question_img = pygame.image.load("button_sprites/question_card.png").convert_alpha()
@@ -129,6 +175,8 @@ pause_btn = Button(20, 20, pause_img, 0.8)
 start_btn = Button(500, 180, start_img, 1)
 instr_btn = Button(492, 340, instr_img, 1)
 shop_btn = Button(535, 500, shop_img, 1)
+mute_btn = Button(535, 300, mute_img, 1)
+unmute_btn = Button(535, 400, unmute_img, 1)
 
 #sprite instances
 question_btn = Button(75, 200, question_img, 0.5)
@@ -137,45 +185,35 @@ bjs_blue_btn = Button(785, 250, bjs_blue_img, 1)
 pwerup_sprite = Button(1100, 500, question_img, 0.2)
 switch_btn = Button(450, 200, switch_img, 2)
 
-#Pause function, in-game menu. When I click pause button, I will get into the pause menu.
+# Load button images
+hit_image = pygame.image.load(os.path.join('images', 'hit.png'))
+stand_image = pygame.image.load(os.path.join('images', 'stand.png'))
+restart_image = pygame.image.load(os.path.join('images', 'restart.png'))
+pause_image = pygame.image.load(os.path.join('images', 'pause.png'))
+up_image = pygame.image.load(os.path.join('images', 'up.png'))
+down_image = pygame.image.load(os.path.join('images', 'down.png'))
+    
+# Create buttons
+hit_button = Button(WIDTH - 300, HEIGHT // 2 - 200, hit_image, 1.5)  # 3 times bigger
+stand_button = Button(WIDTH - 300, HEIGHT // 2 - 150, stand_image, 1.5)  # 3 times bigger
+restart_button = Button(WIDTH - 400, HEIGHT // 2 + 150, restart_image, 1.0)  # Original size
+pause_button = Button(WIDTH - 400, HEIGHT // 2 + 250, pause_image, 1.0)  # Original size
+up_button = Button(990, 335, up_image, 1.0)  # Original size
+down_button = Button(1140, 335, down_image, 1.0)  # Original size
 
-#drawing text - Coding With Russ
-def draw_text(text, font, text_col, x, y):
-    img = font.render(text, True, text_col)
-    screen.blit(img, (x,y))
-
-
-#I put all my code in a function so that Darren's buttons can work
+#I put all my code in a function to simplify everything
 def regulus_code():
-    global CHIPS, game_paused, game_state, menu_state, SHOP_ITEMS, PRICES, second_item_randoms, show_not_enough_chips, show_chips_added_or_subtracted, error_start_time2, error_start_time3, ERROR_DISPLAY_DURATION2, ERROR_DISPLAY_DURATION3, result, background, show_not_bought, error_start_time4, ERROR_DISPLAY_DURATION4, show_already_bought, error_start_time5, ERROR_DISPLAY_DURATION5
+    global CHIPS, game_paused, game_state, menu_state, SHOP_ITEMS, PRICES, second_item_randoms, show_not_enough_chips, show_chips_added_or_subtracted, error_start_time2, error_start_time3, ERROR_DISPLAY_DURATION2, ERROR_DISPLAY_DURATION3, result, background, show_not_bought, error_start_time4, ERROR_DISPLAY_DURATION4, show_already_bought, error_start_time5, ERROR_DISPLAY_DURATION5, sound, font, font2, font3, font4, TEXT_COL, TEXT_COL2, TEXT_COL3, TEXT_COL4, player_hand, dealer_hand, in_play, player_stands, outcome, bet
 
     WIDTH = 1280
     HEIGHT = 700
     SIZE = (WIDTH, HEIGHT)
 
     screen = pygame.display.set_mode(SIZE)
-
-    #game variables - I put this here so that once the regulus_code() function is called (thus bringing the player back to the starting screen), all gave variables are reset
-    game_state = 'starting screen'
-    game_paused = False
-    menu_state = 'main'
-
-    #fonts
-    font = pygame.font.SysFont("serif", 40)
-    font2 = pygame.font.SysFont("arvo", 13)
-    font3 = pygame.font.SysFont("serif", 30)
-    font4 = pygame.font.SysFont("serif", 60)
-
-    #text color
-    TEXT_COL = (255, 255, 255)
-    TEXT_COL2 = ("darkgoldenrod1")
-    TEXT_COL3 = ("gray0")
-    TEXT_COL4 = ((147, 187, 191))
-
     screen = pygame.display.set_mode(SIZE)
     clock = pygame.time.Clock()
 
-    # Shop function when I click on the shop button, it will take me to the shop function, where I can buy stuff.
+    # Shop function, when I click on the shop button, it will take me to the shop function, where I can buy stuff.
     def shop():
         screen.fill((29, 98, 102))
         
@@ -190,10 +228,16 @@ def regulus_code():
         draw_text("blue background", font, TEXT_COL4, 750, 500)
 
         if question_btn.draw(screen):
+            if sound == True:
+                playClick()
             paying1()
         if gamble_btn.draw(screen):
+            if sound == True:
+                playClick()
             paying2()
         if bjs_blue_btn.draw(screen):
+            if sound == True:
+                playClick()
             paying3()
         
     #This is a powerup. It should allow the user to see the next card.
@@ -205,6 +249,7 @@ def regulus_code():
         else:
             show_not_enough_chips = True
             error_start_time2 = pygame.time.get_ticks()
+        
 
     #this is like a mystery box. Buy it for 10 chips. You can either gain lots of chips or lose lots of chips. It is sort of like a gambling game within a gambling game
     def paying2():
@@ -219,6 +264,7 @@ def regulus_code():
         else:
             show_not_enough_chips = True
             error_start_time2 = pygame.time.get_ticks()
+        
 
     #cosmetic background
     def paying3():
@@ -227,6 +273,7 @@ def regulus_code():
             if CHIPS >= 550:
                 CHIPS -= PRICES[2]
                 SHOP_ITEMS[2] += 1
+        
             else:
                 show_not_enough_chips = True
                 error_start_time2 = pygame.time.get_ticks()
@@ -234,15 +281,62 @@ def regulus_code():
             show_already_bought = True
             error_start_time5 = pygame.time.get_ticks()
 
+    def during_game():
+        global background, game_paused, WIDTH, HEIGHT, SIZE, SHOP_ITEMS, font, TEXT_COL, CHIPS
+        if background == "bjs.png":
+            screen.fill('seagreen')
+        if background == "bjs2.png":
+            screen.fill((94, 254, 255))
+        draw_text(f"{SHOP_ITEMS[0]}", font, TEXT_COL, 1140, 600)
+        if pwerup_sprite.draw(screen):
+            if sound == True:
+                playClick()
+            if SHOP_ITEMS[0] > 0:
+                SHOP_ITEMS[0] -= 1
+    
+#ACTUAL GAME FUNCTIONS - CHATGPT
+    # Function to calculate the value of a hand
+    def calculate_hand_value(hand):
+        value = 0
+        aces = 0
+        for card in hand:
+            rank = card[1:]
+            if rank in ['J', 'Q', 'K']:
+                value += 10
+            elif rank == 'A':
+                value += 11
+                aces += 1
+            else:
+                value += int(rank)
+        
+        while value > BLACKJACK and aces:
+            value -= 10
+            aces -= 1
+
+        return value
+
+    # Function to draw the hands
+    def draw_hand(hand, x, y):
+        for i, card in enumerate(hand):
+            screen.blit(card_images[card], (x + i * (CARD_WIDTH + 10), y))
+
+    # Function to reset the game state
+    def reset_game():
+        global player_hand, dealer_hand, in_play, player_stands, outcome, bet
+        player_hand = [random.choice(suits) + random.choice(ranks), random.choice(suits) + random.choice(ranks)]
+        dealer_hand = [random.choice(suits) + random.choice(ranks), random.choice(suits) + random.choice(ranks)]
+        in_play = True
+        player_stands = False
+        outcome = ""
+        bet = 10  # Initial bet amount
+#GAME FUNCTIONS FINISHED
         
 #main loop
     running = True
     while running:
+
         # EVENT HANDLING
         for event in pygame.event.get():
-            # if event.type == pygame.KEYDOWN:
-            #     if event.key == pygame.K_SPACE:
-            #         game_paused = True
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -255,12 +349,19 @@ def regulus_code():
             draw_text(f"BlackJack!", font4, TEXT_COL2, 500, 60)
 
             if start_btn.draw(screen):
+                if sound == True:
+                    playClick()
                 game_state = 'playing'
 
+
             if instr_btn.draw(screen):
+                if sound == True:
+                    playClick()
                 game_state = "instructions"
             
             if shop_btn.draw(screen):
+                if sound == True:
+                    playClick()
                 game_state = 'shop'
 
             art_list = [0]
@@ -275,50 +376,191 @@ def regulus_code():
         #if game is paused, activate menu
         elif game_state == 'playing':
             screen.fill((52, 78, 91))
-            if game_paused == True: #IMPORTANT IMPORTANT TMSFDOPSP
-
+            #Pause function, in-game menu. When I click pause button, I will get into the pause menu.
+            if game_paused == True: #IMPORTANT IMPORTANT
                 screen.fill("seagreen")
                 #check main state
                 if menu_state == "main":
                     #draw pause screen buttons 
                     if resume_btn.draw(screen):
+                        if sound == True:
+                            playClick()   
                         game_paused = False
                     if options_btn.draw(screen):
+                        if sound == True:
+                            playClick()   
                         menu_state = "options"
                     if quit_btn.draw(screen):
+                        if sound == True:
+                            playClick()   
                         game_state = "starting screen"
                         game_paused = False
+                #takes me to the second page in the menu options
                 if menu_state == "options":
                     if change_background_btn.draw(screen):
+                        if sound == True:
+                            playClick()   
                         menu_state = "background"
                     if audio_btn.draw(screen):
-                        print("Audio Settings")
+                        if sound == True:
+                            playClick()   
+                        menu_state = "audio"
                     if back_btn.draw(screen):
+                        if sound == True:
+                            playClick()   
                         menu_state = "main"
                 #background cosmetics
                 if menu_state == "background":
                     screen.fill((29, 98, 102))
                     if back_btn.draw(screen):
+                        if sound == True:
+                            playClick()   
                         menu_state = "options"
                     draw_text("Change Background", font, TEXT_COL4, 450, 537)
                     if switch_btn.draw(screen):
+                        if sound == True:
+                            playClick()   
                         if background == "bjs.png":
                             if SHOP_ITEMS[2] > 0:
                                 background = "bjs2.png"
                             else:
-                                show_not_bought = True
+                                show_not_bought = True 
                                 error_start_time4 = pygame.time.get_ticks()
                         elif background == "bjs2.png":
                             background = "bjs.png"
-            #if game not paused, draw pause button + other functions
+                #audio options
+                if menu_state == "audio":
+                    screen.fill((29, 98, 102))
+                    if back_btn.draw(screen):
+                        if sound == True:
+                            playClick()   
+                        menu_state = "options"
+                    if sound == True:
+                        if mute_btn.draw(screen):
+                            if sound == True:
+                                playClick()   
+                            sound = False
+                    if sound == False:
+                        if unmute_btn.draw(screen):
+                            playClick()
+                            sound = True
+
             else: 
-                #calling Darren's code to play my game
-                mainGame()
+                during_game()
+                # Main game loop
+                def main(): #CHAT GPT, slightly edited by Regulus
+                    global CHIPS, player_hand, dealer_hand, in_play, player_stands, outcome, bet, game_paused, running, game_state
+
+                    run = True
+                    clock = pygame.time.Clock()
+                    
+                    # Reset game state
+                    reset_game()
+                    while run:
+                        if background == "bjs.png":
+                            screen.fill('seagreen')
+                        if background == "bjs2.png":
+                            screen.fill((94, 254, 255))
+                        draw_text(f"{SHOP_ITEMS[0]}", font, TEXT_COL, 1140, 600)
+                        if pwerup_sprite.draw(screen):
+                            if sound == True:
+                                playClick()   
+                            if SHOP_ITEMS[0] > 0:
+                                SHOP_ITEMS[0] -= 1
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                running = False
+                                run = False
+                                pygame.quit()
+                
+                        # Draw hands
+                        draw_hand(player_hand, 50, HEIGHT - CARD_HEIGHT - 20)
+                        draw_hand(dealer_hand if player_stands else dealer_hand[:1], 50, 50)  # Adjusted dealer hand text position
+
+                        # Calculate hand values
+                        player_value = calculate_hand_value(player_hand)
+                        dealer_value = calculate_hand_value(dealer_hand)
+
+                        # Draw values
+                        draw_text(f'Player: {player_value}', font, TEXT_COL4, 50, HEIGHT - CARD_HEIGHT - 90)
+                        draw_text(f'Dealer: {dealer_value if player_stands else "?"}', font, TEXT_COL4, 50, CARD_HEIGHT + 70)  # Adjusted position
+                        draw_text(f'Chips: {CHIPS}', font, TEXT_COL2, WIDTH - 300, 20)
+                        draw_text(f'Bet: {bet}', font, TEXT_COL2, WIDTH - 300, 60)
+
+                        # Check button clicks
+                        if hit_button.draw(screen) and in_play and not player_stands:
+                            if sound == True:
+                                playClick()   
+                            player_hand.append(random.choice(suits) + random.choice(ranks))
+                        if stand_button.draw(screen) and in_play:
+                            if sound == True:
+                                playClick() 
+                            player_stands = True
+                        if restart_button.draw(screen):
+                            if sound == True:
+                                playClick() 
+                            if CHIPS <= 0:
+                                CHIPS = 10  # Reset chips on game over
+                                
+                            main()  # Reset the game state
+                        if pause_button.draw(screen):
+                            if sound == True:
+                                playClick() 
+                            game_paused = True
+                            break
+                        if up_button.draw(screen):
+                            if sound == True:
+                                playClick() 
+                            if bet < CHIPS:
+                                bet += 10  # Increase the bet by 10
+                        if down_button.draw(screen):
+                            if sound == True:
+                                playClick() 
+                            if bet > 10:
+                                bet -= 10  # Decrease the bet by 10
+
+                        if player_value > BLACKJACK and in_play:
+                            outcome = "Player busts! Dealer wins."
+                            CHIPS -= bet
+                            in_play = False
+                        elif player_value == BLACKJACK and in_play:
+                            outcome = "Blackjack! Player wins."
+                            CHIPS += bet
+                            in_play = False
+
+                        if player_stands and in_play:
+                            while dealer_value < DEALER_STAND:
+                                dealer_hand.append(random.choice(suits) + random.choice(ranks))
+                                dealer_value = calculate_hand_value(dealer_hand)
+
+                            if dealer_value > BLACKJACK:
+                                outcome = "Dealer busts! Player wins."
+                                CHIPS += bet
+                            elif dealer_value >= player_value:
+                                outcome = "Dealer wins."
+                                CHIPS -= bet
+                            else:
+                                outcome = "Player wins."
+                                CHIPS += bet
+                            in_play = False
+
+                        if outcome:
+                            draw_text(outcome, font, TEXT_COL4, WIDTH // 2 - 100, HEIGHT // 2 - 50)
+                        
+                        if CHIPS <= 0:
+                            draw_text('Restart for 10 more chips!', font, TEXT_COL4, WIDTH // 2 - 100, HEIGHT // 2)
+
+                        pygame.display.flip()
+                        clock.tick(30)
+                    
+                main()
         
         #Shop
         if game_state == 'shop':
             shop()
             if back_btn.draw(screen):
+                if sound == True:
+                    playClick() 
                 game_state = "starting screen"
         
         if game_state == "instructions":
