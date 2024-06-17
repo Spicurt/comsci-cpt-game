@@ -2,17 +2,19 @@ import random
 import os
 import sys
 import pygame
+import json
 from pygame.locals import *
 pygame.font.init()
 pygame.mixer.init()
-
 pygame.init()
 #GREEN CODE: does not work, or work on it later
-CHIPS = 100
 WIDTH = 1280
 HEIGHT = 700
 SIZE = (WIDTH, HEIGHT)
-
+money_json = {"funds":100.00, "highscore":0}
+with open('money.json', 'w') as f:
+    json.dump(money_json, f)
+funds = money_json["funds"]
 screen = pygame.display.set_mode(SIZE)
 
 #System functions (music, images, animations)
@@ -57,9 +59,9 @@ def mainGame():
     SIZE = (WIDTH, HEIGHT)
 
     screen = pygame.display.set_mode(SIZE)
-    global CHIPS, game_paused, game_state
+    global funds, game_paused, game_state
     def gameOver():
-        global CHIPS, game_paused, game_state
+        global funds, game_paused, game_state
         while 1:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -166,7 +168,7 @@ def mainGame():
 
         return totalValue
         
-    def blackJack(deck, deadDeck, playerHand, dealerHand, CHIPS, bet, cards, cardSprite):
+    def blackJack(deck, deadDeck, playerHand, dealerHand, funds, bet, cards, cardSprite):
 
         textFont = pygame.font.Font(None, 28)
 
@@ -175,30 +177,30 @@ def mainGame():
         
         if playerValue == 21 and dealerValue == 21:
             displayFont = display(textFont, "Blackjack! The dealer also has blackjack, so it's a push!")
-            deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, 0, bet, cards, cardSprite)
+            deck, playerHand, dealerHand, deadDeck, funds, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, funds, 0, bet, cards, cardSprite)
                 
         elif playerValue == 21 and dealerValue != 21:
             # Dealer loses
             displayFont = display(textFont, "Blackjack! You won $%.2f." %(bet*1.5))
-            deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, bet, 0, cards, cardSprite)
+            deck, playerHand, dealerHand, deadDeck, funds, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, funds, bet, 0, cards, cardSprite)
             
         elif dealerValue == 21 and playerValue != 21:
             # Player loses, money is lost, and new hand will be dealt
-            deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, 0, bet, cards, cardSprite)
+            deck, playerHand, dealerHand, deadDeck, funds, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, funds, 0, bet, cards, cardSprite)
             displayFont = display(textFont, "Dealer has blackjack! You lose $%.2f." %(bet))
             
-        return displayFont, playerHand, dealerHand, deadDeck, CHIPS, roundEnd
+        return displayFont, playerHand, dealerHand, deadDeck, funds, roundEnd
 
-    def bust(deck, playerHand, dealerHand, deadDeck, CHIPS, moneyGained, moneyLost, cards, cardSprite):
+    def bust(deck, playerHand, dealerHand, deadDeck, funds, moneyGained, moneyLost, cards, cardSprite):
         
         font = pygame.font.Font(None, 28)
         displayFont = display(font, "You bust! You lost $%.2f." %(moneyLost))
         
-        deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, moneyGained, moneyLost, cards, cardSprite)
+        deck, playerHand, dealerHand, deadDeck, funds, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, funds, moneyGained, moneyLost, cards, cardSprite)
         
-        return deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd, displayFont
+        return deck, playerHand, dealerHand, deadDeck, funds, roundEnd, displayFont
 
-    def endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, moneyGained, moneyLost, cards, cardSprite):
+    def endRound(deck, playerHand, dealerHand, deadDeck, funds, moneyGained, moneyLost, cards, cardSprite):
     
         if len(playerHand) == 2 and "a" in playerHand[0] or "a" in playerHand[1]:
             moneyGained += (moneyGained/2.0)
@@ -220,21 +222,21 @@ def mainGame():
         del playerHand[:]
         del dealerHand[:]
 
-        CHIPS += moneyGained
-        CHIPS -= moneyLost
-        money_json["funds"] = CHIPS
+        funds += moneyGained
+        funds -= moneyLost
+        money_json["funds"] = funds
 
         
         textFont = pygame.font.Font(None, 28)
         
-        if CHIPS <= 0:
+        if funds <= 0:
             gameOver()  
         
         roundEnd = 1
 
-        return deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd 
+        return deck, playerHand, dealerHand, deadDeck, funds, roundEnd 
         
-    def compareHands(deck, deadDeck, playerHand, dealerHand, CHIPS, bet, cards, cardSprite):
+    def compareHands(deck, deadDeck, playerHand, dealerHand, funds, bet, cards, cardSprite):
         textFont = pygame.font.Font(None, 28)
         moneyGained = 0
         moneyLost = 0
@@ -251,19 +253,19 @@ def mainGame():
             
         if playerValue > dealerValue and playerValue <= 21:
             moneyGained = bet
-            deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, bet, 0, cards, cardSprite)
+            deck, playerHand, dealerHand, deadDeck, funds, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, funds, bet, 0, cards, cardSprite)
             displayFont = display(textFont, "You won $%.2f." %(bet))
         elif playerValue == dealerValue and playerValue <= 21:
-            deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, 0, 0, cards, cardSprite)
+            deck, playerHand, dealerHand, deadDeck, funds, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, funds, 0, 0, cards, cardSprite)
             displayFont = display(textFont, "It's a push!")
         elif dealerValue > 21 and playerValue <= 21:
-            deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, bet, 0, cards, cardSprite)
+            deck, playerHand, dealerHand, deadDeck, funds, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, funds, bet, 0, cards, cardSprite)
             displayFont = display(textFont, "Dealer busts! You won $%.2f." %(bet))
         else:
-            deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, CHIPS, 0, bet, cards, cardSprite)
+            deck, playerHand, dealerHand, deadDeck, funds, roundEnd = endRound(deck, playerHand, dealerHand, deadDeck, funds, 0, bet, cards, cardSprite)
             displayFont = display(textFont, "Dealer wins! You lost $%.2f." %(bet))
             
-        return deck, deadDeck, roundEnd, CHIPS, displayFont
+        return deck, deadDeck, roundEnd, funds, displayFont
 
     #Sprite maker baker candy taker
     class cardSprite(pygame.sprite.Sprite):
@@ -311,7 +313,7 @@ def mainGame():
             self.image, self.rect = imageLoad("stand-grey.png", 0)
             self.position = (735, 365)
             
-        def update(self, mX, mY, deck, deadDeck, playerHand, dealerHand, cards, pCardPos, roundEnd, cardSprite, CHIPS, bet, displayFont):            
+        def update(self, mX, mY, deck, deadDeck, playerHand, dealerHand, cards, pCardPos, roundEnd, cardSprite, funds, bet, displayFont):            
             if roundEnd == 0: self.image, self.rect = imageLoad("stand.png", 0)
             else: self.image, self.rect = imageLoad("stand-grey.png", 0)
             
@@ -321,9 +323,37 @@ def mainGame():
             if self.rect.collidepoint(mX, mY) == 1:
                 if roundEnd == 0: 
                     playClick()
-                    deck, deadDeck, roundEnd, CHIPS, displayFont = compareHands(deck, deadDeck, playerHand, dealerHand, CHIPS, bet, cards, cardSprite)
+                    deck, deadDeck, roundEnd, funds, displayFont = compareHands(deck, deadDeck, playerHand, dealerHand, funds, bet, cards, cardSprite)
                 
-            return deck, deadDeck, roundEnd, CHIPS, playerHand, deadDeck, pCardPos, displayFont 
+            return deck, deadDeck, roundEnd, funds, playerHand, deadDeck, pCardPos, displayFont 
+    
+    class pauseButton(pygame.sprite.Sprite):
+        def __init__(self):
+            
+            pygame.sprite.Sprite.__init__(self)
+            self.image, self.rect = imageLoad("button_pause.png", 0)
+            self.position = (400, 25)
+        def update(self, mX, mY, click, roundEnd):
+            if roundEnd == 0: 
+                self.image, self.rect = imageLoad("button_pause.png", 0)
+            else: 
+                self.image, self.rect = imageLoad("button_pause.png", 0)
+            self.position = (400, 25)
+            self.rect.center = self.position
+            if self.rect.collidepoint(mX, mY) == 1:
+                global screen
+                global game_paused
+                global HEIGHT
+                global WIDTH
+                playClick()
+                WIDTH = 1280
+                HEIGHT = 700
+                SIZE = (WIDTH, HEIGHT)
+                screen = pygame.display.set_mode(SIZE)
+                game_paused = True
+            
+            
+            
 
     class doubleButton(pygame.sprite.Sprite):
         
@@ -332,15 +362,17 @@ def mainGame():
             self.image, self.rect = imageLoad("double-grey.png", 0)
             self.position = (735, 330)
             
-        def update(self, mX, mY,   deck, deadDeck, playerHand, dealerHand, playerCards, cards, pCardPos, roundEnd, cardSprite, CHIPS, bet, displayFont):            
-            if roundEnd == 0 and CHIPS >= bet * 2 and len(playerHand) == 2: self.image, self.rect = imageLoad("double.png", 0)
-            else: self.image, self.rect = imageLoad("double-grey.png", 0)
+        def update(self, mX, mY,   deck, deadDeck, playerHand, dealerHand, playerCards, cards, pCardPos, roundEnd, cardSprite, funds, bet, displayFont):            
+            if roundEnd == 0 and funds >= bet * 2 and len(playerHand) == 2: 
+                self.image, self.rect = imageLoad("double.png", 0)
+            else: 
+                self.image, self.rect = imageLoad("double-grey.png", 0)
                 
             self.position = (735, 330)
             self.rect.center = self.position
                 
             if self.rect.collidepoint(mX, mY) == 1:
-                if roundEnd == 0 and CHIPS >= bet * 2 and len(playerHand) == 2: 
+                if roundEnd == 0 and funds >= bet * 2 and len(playerHand) == 2: 
                     bet = bet * 2
                     
                     playClick()
@@ -351,11 +383,11 @@ def mainGame():
                     playerCards.add(card)
                     pCardPos = (pCardPos[0] - 80, pCardPos[1])
         
-                    deck, deadDeck, roundEnd, CHIPS, displayFont = compareHands(deck, deadDeck, playerHand, dealerHand, CHIPS, bet, cards, cardSprite)
+                    deck, deadDeck, roundEnd, funds, displayFont = compareHands(deck, deadDeck, playerHand, dealerHand, funds, bet, cards, cardSprite)
                     
                     bet = bet / 2
 
-            return deck, deadDeck, roundEnd, CHIPS, playerHand, deadDeck, pCardPos, displayFont, bet
+            return deck, deadDeck, roundEnd, funds, playerHand, deadDeck, pCardPos, displayFont, bet
 
     class dealButton(pygame.sprite.Sprite):
         
@@ -412,7 +444,7 @@ def mainGame():
             self.image, self.rect = imageLoad("up.png", 0)
             self.position = (710, 255)
             
-        def update(self, mX, mY, bet, CHIPS, click, roundEnd):
+        def update(self, mX, mY, bet, funds, click, roundEnd):
             if roundEnd == 1: self.image, self.rect = imageLoad("up.png", 0)
             else: self.image, self.rect = imageLoad("up-grey.png", 0)
             
@@ -421,7 +453,7 @@ def mainGame():
             
             if self.rect.collidepoint(mX, mY) == 1 and click == 1 and roundEnd == 1:
                 playClick()
-                if bet < CHIPS:
+                if bet < funds:
                     bet += 5.0                
                     if bet % 5 != 0:
                         while bet % 5 != 0:
@@ -430,7 +462,7 @@ def mainGame():
                 click = 0
             
             return bet, click
-            
+    
     class betButtonDown(pygame.sprite.Sprite):
         global background
         def __init__(self):
@@ -474,8 +506,9 @@ def mainGame():
     dealButton = dealButton()
     hitButton = hitButton()
     doubleButton = doubleButton()
+    pauseButton = pauseButton()
     
-    buttons = pygame.sprite.Group(bbU, bbD, hitButton, standButton, dealButton, doubleButton)
+    buttons = pygame.sprite.Group(bbU, bbD, hitButton, standButton, dealButton, doubleButton, pauseButton)
 
     deck = createDeck()
     deadDeck = []
@@ -485,25 +518,25 @@ def mainGame():
     click = 0
     with open('money.json', 'w') as f:
         json.dump(money_json,f)
-    global CHIPS
+    global funds
     bet = 10
     handsPlayed = 0    
     firstTime = 1
     roundEnd = 1
-    while 1:
+    while game_paused == False:
     
         screen.blit(background, backgroundRect)
         
-        if bet > CHIPS:
-            bet = CHIPS
+        if bet > funds:
+            bet = funds
         
         if roundEnd == 1 and firstTime == 1:
             displayFont = display(textFont, "Click on the arrows to declare your bet, then deal to start the game.")
             firstTime = 0
             
         screen.blit(displayFont, (10,444))
-        CHIPSFont = pygame.font.Font.render(textFont, "chips: %.2f" %(CHIPS), 1, (255,255,255), (0,0,0))
-        screen.blit(CHIPSFont, (663,205))
+        fundsFont = pygame.font.Font.render(textFont, "funds: %.2f" %(funds), 1, (255,255,255), (0,0,0))
+        screen.blit(fundsFont, (663,205))
         betFont = pygame.font.Font.render(textFont, "Bet: %.2f" %(bet), 1, (255,255,255), (0,0,0))
         screen.blit(betFont, (680,285))
         hpFont = pygame.font.Font.render(textFont, "Round: %i " %(handsPlayed), 1, (255,255,255), (0,0,0))
@@ -525,20 +558,21 @@ def mainGame():
             dealerValue = checkValue(dealerHand)
     
             if playerValue == 21 and len(playerHand) == 2:
-                displayFont, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = blackJack(deck, deadDeck, playerHand, dealerHand, CHIPS,  bet, cards, cardSprite)
+                displayFont, playerHand, dealerHand, deadDeck, funds, roundEnd = blackJack(deck, deadDeck, playerHand, dealerHand, funds,  bet, cards, cardSprite)
                 
             if dealerValue == 21 and len(dealerHand) == 2:
-                displayFont, playerHand, dealerHand, deadDeck, CHIPS, roundEnd = blackJack(deck, deadDeck, playerHand, dealerHand, CHIPS,  bet, cards, cardSprite)
+                displayFont, playerHand, dealerHand, deadDeck, funds, roundEnd = blackJack(deck, deadDeck, playerHand, dealerHand, funds,  bet, cards, cardSprite)
 
             if playerValue > 21:
-                deck, playerHand, dealerHand, deadDeck, CHIPS, roundEnd, displayFont = bust(deck, playerHand, dealerHand, deadDeck, CHIPS, 0, bet, cards, cardSprite)
+                deck, playerHand, dealerHand, deadDeck, funds, roundEnd, displayFont = bust(deck, playerHand, dealerHand, deadDeck, funds, 0, bet, cards, cardSprite)
          
         deck, deadDeck, playerHand, dealerHand, dCardPos, pCardPos, roundEnd, displayFont, click, handsPlayed = dealButton.update(mX, mY, deck, deadDeck, roundEnd, cardSprite, cards, playerHand, dealerHand, dCardPos, pCardPos, displayFont, playerCards, click, handsPlayed)   
         deck, deadDeck, playerHand, pCardPos, click = hitButton.update(mX, mY, deck, deadDeck, playerHand, playerCards, pCardPos, roundEnd, cardSprite, click)
-        deck, deadDeck, roundEnd, CHIPS, playerHand, deadDeck, pCardPos,  displayFont  = standButton.update(mX, mY,   deck, deadDeck, playerHand, dealerHand, cards, pCardPos, roundEnd, cardSprite, CHIPS, bet, displayFont)
-        deck, deadDeck, roundEnd, CHIPS, playerHand, deadDeck, pCardPos, displayFont, bet  = doubleButton.update(mX, mY,   deck, deadDeck, playerHand, dealerHand, playerCards, cards, pCardPos, roundEnd, cardSprite, CHIPS, bet, displayFont)
-        bet, click = bbU.update(mX, mY, bet, CHIPS, click, roundEnd)
+        deck, deadDeck, roundEnd, funds, playerHand, deadDeck, pCardPos,  displayFont  = standButton.update(mX, mY,   deck, deadDeck, playerHand, dealerHand, cards, pCardPos, roundEnd, cardSprite, funds, bet, displayFont)
+        deck, deadDeck, roundEnd, funds, playerHand, deadDeck, pCardPos, displayFont, bet  = doubleButton.update(mX, mY,   deck, deadDeck, playerHand, dealerHand, playerCards, cards, pCardPos, roundEnd, cardSprite, funds, bet, displayFont)
+        bet, click = bbU.update(mX, mY, bet, funds, click, roundEnd)
         bet, click = bbD.update(mX, mY, bet, click, roundEnd)
+        click = pauseButton.update(mX, mY, click, roundEnd)
         buttons.draw(screen)
          
         if len(cards) != 0:
@@ -567,7 +601,7 @@ SHOP_ITEMS = [0, 0, 0]
 PRICES = [20, 10, 500]
 second_item_randoms = [5, 5, 5, 10, 10, 100, -10, -10, -5, -5, 0, 0, 0]
 result = 0
-global CHIPS
+funds = money_json["funds"]
 #fonts
 font = pygame.font.SysFont("serif", 40)
 font2 = pygame.font.SysFont("arvo", 13)
@@ -586,12 +620,12 @@ error_start_time = 0
 ERROR_DISPLAY_DURATION = 500 
 
 # Display time for text 2 - Regulus
-show_not_enough_chips = False
+show_not_enough_funds = False
 error_start_time2 = 0
 ERROR_DISPLAY_DURATION2 = 500 
 
 # Display time for text 3 - Regulus
-show_chips_added_or_subtracted = False
+show_funds_added_or_subtracted = False
 error_start_time3 = 0
 ERROR_DISPLAY_DURATION3 = 500
 
@@ -656,7 +690,7 @@ question_img = pygame.image.load("button_sprites/question_card.png").convert_alp
 starting_img = pygame.image.load("images/cards/back.png").convert_alpha()
 bjs_blue_img = pygame.image.load("images/blue.png").convert_alpha()
 mystery_img = pygame.image.load("button_sprites/mystery.png").convert_alpha()
-switch_img = pygame.image.load("images/switchcolors.png").convert_alpha()
+switch_img = pygame.image.load("images/down.png").convert_alpha()
 
 #Button instances
 resume_btn = Button(200, 80, resume_img, 1)
@@ -691,13 +725,14 @@ def load_game():
         with open('money.json', 'r') as f:
             game_state = json.load(f)
             print(game_state)
-            CHIPS = game_state["funds"]
+            funds = game_state["funds"]
     except FileNotFoundError:
         print("save file not found")
 
 #I put all my code in a function so that Darren's buttons can work
 def regulus_code():
-    global CHIPS, game_paused, game_state, menu_state, SHOP_ITEMS, PRICES, second_item_randoms, show_not_enough_chips, show_chips_added_or_subtracted, error_start_time2, error_start_time3, ERROR_DISPLAY_DURATION2, ERROR_DISPLAY_DURATION3, result, background, show_not_bought, error_start_time4, ERROR_DISPLAY_DURATION4, show_already_bought, error_start_time5, ERROR_DISPLAY_DURATION5, sound, font, font2, font3, font4, TEXT_COL, TEXT_COL2, TEXT_COL3, TEXT_COL4, sound
+    load_game()
+    global funds, game_paused, game_state, menu_state, SHOP_ITEMS, PRICES, second_item_randoms, show_not_enough_funds, show_funds_added_or_subtracted, error_start_time2, error_start_time3, ERROR_DISPLAY_DURATION2, ERROR_DISPLAY_DURATION3, result, background, show_not_bought, error_start_time4, ERROR_DISPLAY_DURATION4, show_already_bought, error_start_time5, ERROR_DISPLAY_DURATION5, sound, font, font2, font3, font4, TEXT_COL, TEXT_COL2, TEXT_COL3, TEXT_COL4, sound
     WIDTH = 1280
     HEIGHT = 700
     SIZE = (WIDTH, HEIGHT)
@@ -716,14 +751,14 @@ def regulus_code():
     def shop():
         screen.fill((29, 98, 102))
         
-        draw_text(f"CHIPS: {CHIPS}", font, TEXT_COL2, 900, 40)
+        draw_text(f"funds: {funds}", font, TEXT_COL2, 900, 40)
         for i in range(len(SHOP_ITEMS)):
             if i == 0:
                 draw_text(f"{SHOP_ITEMS[i]}", font, TEXT_COL, 1140, 600)
                 pwerup_sprite.draw(screen)
         
         draw_text("know the next card", font, TEXT_COL4, 20, 500)
-        draw_text("chips gamble", font, TEXT_COL4, 450, 500)
+        draw_text("funds gamble", font, TEXT_COL4, 450, 500)
         draw_text("blue background", font, TEXT_COL4, 750, 500)
 
         if question_btn.draw(screen):
@@ -735,37 +770,37 @@ def regulus_code():
         
     #This is a powerup. It should allow the user to see the next card.
     def paying1():
-        global CHIPS, show_not_enough_chips, error_start_time2
-        if CHIPS > 50:
-            CHIPS -= PRICES[0]
+        global funds, show_not_enough_funds, error_start_time2
+        if funds > 50:
+            funds -= PRICES[0]
             SHOP_ITEMS[0] += 1
         else:
-            show_not_enough_chips = True
+            show_not_enough_funds = True
             error_start_time2 = pygame.time.get_ticks()
 
-    #this is like a mystery box. Buy it for 10 chips. You can either gain lots of chips or lose lots of chips. It is sort of like a gambling game within a gambling game
+    #this is like a mystery box. Buy it for 10 funds. You can either gain lots of funds or lose lots of funds. It is sort of like a gambling game within a gambling game
     def paying2():
-        global CHIPS, show_not_enough_chips, error_start_time2, result, show_chips_added_or_subtracted, error_start_time3 
-        if CHIPS > 50:
-            CHIPS -= PRICES[1]
+        global funds, show_not_enough_funds, error_start_time2, result, show_funds_added_or_subtracted, error_start_time3 
+        if funds > 50:
+            funds -= PRICES[1]
             SHOP_ITEMS[1] += 1
             result = random.choice(second_item_randoms)
-            show_chips_added_or_subtracted = True
+            show_funds_added_or_subtracted = True
             error_start_time3 = pygame.time.get_ticks()
-            CHIPS += result
+            funds += result
         else:
-            show_not_enough_chips = True
+            show_not_enough_funds = True
             error_start_time2 = pygame.time.get_ticks()
 
     #cosmetic background
     def paying3():
-        global CHIPS, show_not_enough_chips, error_start_time2, show_already_bought, error_start_time5
+        global funds, show_not_enough_funds, error_start_time2, show_already_bought, error_start_time5
         if SHOP_ITEMS[2] == 0:
-            if CHIPS >= 550:
-                CHIPS -= PRICES[2]
+            if funds >= 550:
+                funds -= PRICES[2]
                 SHOP_ITEMS[2] += 1
             else:
-                show_not_enough_chips = True
+                show_not_enough_funds = True
                 error_start_time2 = pygame.time.get_ticks()
         else:
             show_already_bought = True
@@ -775,7 +810,6 @@ def regulus_code():
 #main loop
     running = True
     while running:
-        load_game()
         # EVENT HANDLING
         for event in pygame.event.get():
             # if event.type == pygame.KEYDOWN:
@@ -885,23 +919,23 @@ def regulus_code():
                 game_state = "starting screen"
 
     #THESE CODES BELOW are from Chatgpt. They are for showing the user that there are not enough tokens and the amount of money being added/subtracted from the second item in the shop.
-    #Show not enough CHIPS - ChatGPT
-        if show_not_enough_chips:
+    #Show not enough funds - ChatGPT
+        if show_not_enough_funds:
             current_time2 = pygame.time.get_ticks()
             if current_time2 - error_start_time2 < ERROR_DISPLAY_DURATION2:
-                draw_text("Not enough CHIPS!", font, TEXT_COL, 400, 250)
+                draw_text("Not enough funds!", font, TEXT_COL, 400, 250)
             else:
                 show_error = False
 
-    #showing amount of chips added or subtracted in the second shop function
-        if show_chips_added_or_subtracted:
+    #showing amount of funds added or subtracted in the second shop function
+        if show_funds_added_or_subtracted:
             current_time3 = pygame.time.get_ticks()
             if current_time3 - error_start_time3 < ERROR_DISPLAY_DURATION3:
                 draw_text(f"{result-10}", font, TEXT_COL, 1017, 109)
             else:
                 show_error = False
 
-    #showing amount of chips added or subtracted in the second shop function
+    #showing amount of funds added or subtracted in the second shop function
         if show_not_bought:
             current_time4 = pygame.time.get_ticks()
             if current_time4 - error_start_time4 < ERROR_DISPLAY_DURATION4:
@@ -909,7 +943,7 @@ def regulus_code():
             else:
                 show_error = False
 
-    #showing amount of chips added or subtracted in the second shop function
+    #showing amount of funds added or subtracted in the second shop function
         if show_already_bought:
             current_time5 = pygame.time.get_ticks()
             if current_time5 - error_start_time5 < ERROR_DISPLAY_DURATION5:
