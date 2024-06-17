@@ -37,12 +37,28 @@ BLACKJACK = 21
 DEALER_STAND = 17
 FONT_SIZE = 32
 
-data = {
-    "CHIPS": CHIPS,
-    "sound": sound,
-    "background": background,
-    "SHOP_ITEMS": SHOP_ITEMS
-}
+def save_game_state():
+    game_state_data = {
+        'CHIPS': CHIPS,
+        'background': 'background.png',  # Replace with actual background state if dynamic
+        'sound': sound,
+        'SHOP_ITEMS': SHOP_ITEMS
+    }
+    with open('game_state.json', 'w') as f:
+        json.dump(game_state_data, f)
+
+def load_game_state():
+    global CHIPS, sound, SHOP_ITEMS
+    try:
+        with open('game_state.json', 'r') as f:
+            game_state_data = json.load(f)
+            CHIPS = game_state_data.get('CHIPS', CHIPS)
+            sound = game_state_data.get('sound', sound)
+            SHOP_ITEMS = game_state_data.get('SHOP_ITEMS', SHOP_ITEMS)
+    except FileNotFoundError:
+        pass
+
+load_game_state()
 
 # Load card images - CHATGPT
 card_images = {}
@@ -246,6 +262,7 @@ def regulus_code():
         if CHIPS > 50:
             CHIPS -= PRICES[0]
             SHOP_ITEMS[0] += 1
+            save_game_state()
         else:
             show_not_enough_chips = True
             error_start_time2 = pygame.time.get_ticks()
@@ -261,6 +278,7 @@ def regulus_code():
             show_chips_added_or_subtracted = True
             error_start_time3 = pygame.time.get_ticks()
             CHIPS += result
+            save_game_state()
         else:
             show_not_enough_chips = True
             error_start_time2 = pygame.time.get_ticks()
@@ -273,7 +291,7 @@ def regulus_code():
             if CHIPS >= 550:
                 CHIPS -= PRICES[2]
                 SHOP_ITEMS[2] += 1
-        
+                save_game_state()
             else:
                 show_not_enough_chips = True
                 error_start_time2 = pygame.time.get_ticks()
@@ -293,6 +311,7 @@ def regulus_code():
                 playClick()
             if SHOP_ITEMS[0] > 0:
                 SHOP_ITEMS[0] -= 1
+                save_game_state()
     
 #ACTUAL GAME FUNCTIONS - CHATGPT
     # Function to calculate the value of a hand
@@ -423,11 +442,13 @@ def regulus_code():
                         if background == "bjs.png":
                             if SHOP_ITEMS[2] > 0:
                                 background = "bjs2.png"
+                                save_game_state()
                             else:
                                 show_not_bought = True 
                                 error_start_time4 = pygame.time.get_ticks()
                         elif background == "bjs2.png":
                             background = "bjs.png"
+                            save_game_state()
                 #audio options
                 if menu_state == "audio":
                     screen.fill((29, 98, 102))
@@ -440,15 +461,17 @@ def regulus_code():
                             if sound == True:
                                 playClick()   
                             sound = False
+                            save_game_state()
                     if sound == False:
                         if unmute_btn.draw(screen):
                             playClick()
                             sound = True
+                            save_game_state()
 
             else: 
                 during_game()
                 # Main game loop
-                def main(): #CHAT GPT, slightly edited by Regulus
+                def main(): #CHAT GPT, but Regulus added the powerup button, the ability for it to close properly, the pause button, and a few other small things
                     global CHIPS, player_hand, dealer_hand, in_play, player_stands, outcome, bet, game_paused, running, game_state
 
                     run = True
@@ -467,6 +490,7 @@ def regulus_code():
                                 playClick()   
                             if SHOP_ITEMS[0] > 0:
                                 SHOP_ITEMS[0] -= 1
+                                save_game_state()
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
                                 running = False
