@@ -8,7 +8,7 @@ pygame.mixer.init()
 
 pygame.init()
 #GREEN CODE: does not work, or work on it later
-
+CHIPS = 100
 WIDTH = 1280
 HEIGHT = 700
 SIZE = (WIDTH, HEIGHT)
@@ -63,8 +63,12 @@ def mainGame():
         while 1:
             for event in pygame.event.get():
                 if event.type == QUIT:
+                    with open('money.json', 'w') as f:
+                        json.dump(money_json, f)
                     sys.exit()
                 if event.type == KEYDOWN and event.key == K_ESCAPE:
+                    with open('money.json', 'w') as f:
+                        json.dump(money_json, f)
                     sys.exit()
 
             screen.fill((0,0,0))
@@ -218,6 +222,8 @@ def mainGame():
 
         CHIPS += moneyGained
         CHIPS -= moneyLost
+        money_json["funds"] = CHIPS
+
         
         textFont = pygame.font.Font(None, 28)
         
@@ -477,7 +483,9 @@ def mainGame():
     playerHand, dealerHand, dCardPos, pCardPos = [],[],(),()
     mX, mY = 0, 0
     click = 0
-
+    with open('money.json', 'w') as f:
+        json.dump(money_json,f)
+    global CHIPS
     bet = 10
     handsPlayed = 0    
     firstTime = 1
@@ -559,7 +567,7 @@ SHOP_ITEMS = [0, 0, 0]
 PRICES = [20, 10, 500]
 second_item_randoms = [5, 5, 5, 10, 10, 100, -10, -10, -5, -5, 0, 0, 0]
 result = 0
-CHIPS = 1000
+global CHIPS
 #fonts
 font = pygame.font.SysFont("serif", 40)
 font2 = pygame.font.SysFont("arvo", 13)
@@ -677,6 +685,15 @@ def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x,y))
 
+def load_game():
+    global funds
+    try:
+        with open('money.json', 'r') as f:
+            game_state = json.load(f)
+            print(game_state)
+            CHIPS = game_state["funds"]
+    except FileNotFoundError:
+        print("save file not found")
 
 #I put all my code in a function so that Darren's buttons can work
 def regulus_code():
@@ -758,13 +775,16 @@ def regulus_code():
 #main loop
     running = True
     while running:
+        load_game()
         # EVENT HANDLING
         for event in pygame.event.get():
             # if event.type == pygame.KEYDOWN:
             #     if event.key == pygame.K_SPACE:
             #         game_paused = True
             if event.type == pygame.QUIT:
-                running = False
+                with open('money.json', 'w') as f:
+                    json.dump(money_json, f)
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(event.pos)
 
