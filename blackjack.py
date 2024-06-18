@@ -545,6 +545,8 @@ def mainGame():
 
         for event in pygame.event.get():
             if event.type == QUIT:
+                with open('money.json', 'w') as f:
+                    json.dump(money_json, f)
                 sys.exit()
             elif event.type == MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -884,12 +886,14 @@ def regulus_code():
                     if switch_btn.draw(screen):
                         if background == "bjs.png":
                             if SHOP_ITEMS[2] > 0:
-                                background = "bjs2.png"
+                                money_json["bg"] = "bjs2.png"
+                                background = money_json["bg"]
                             else:
                                 show_not_bought = True 
                                 error_start_time4 = pygame.time.get_ticks()
                         elif background == "bjs2.png":
-                            background = "bjs.png"
+                            money_json["bg"] = "bjs.png"
+                            background = money_json["bg"]
                 #audio options
                 if menu_state == "audio":
                     screen.fill((29, 98, 102))
