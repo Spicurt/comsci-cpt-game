@@ -730,8 +730,8 @@ pause_btn = Button(20, 20, pause_img, 0.8)
 start_btn = Button(500, 180, start_img, 1)
 instr_btn = Button(492, 340, instr_img, 1)
 shop_btn = Button(535, 500, shop_img, 1)
-mute_btn = Button(535, 340, mute_img, 1)
-unmute_btn = Button(535, 340, unmute_img, 1)
+mute_btn = Button(535, 300, mute_img, 1)
+unmute_btn = Button(535, 400, unmute_img, 1)
 
 #sprite instances
 question_btn = Button(75, 200, question_img, 0.5)
