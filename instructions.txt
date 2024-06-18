@@ -1,4 +1,0 @@
-Instructions:
-The game is simple: choose to hit or stand. If you hit, the dealer will give you another card. If you stand, the dealer does not give you anything. If your cards all add up to 21, you win! If you go over, you lose :(
-Tens, Jacks, Queens, and Kings all count as 10s. Aces may count as 11s or 1s depending on your situation.
-So, enter your bet amount and start playing!
