@@ -11,13 +11,25 @@ pygame.init()
 WIDTH = 1280
 HEIGHT = 700
 SIZE = (WIDTH, HEIGHT)
-money_json = {"funds":100.00, "highscore":0, "bg" : "bjs.png"}
+funds = 0
+bgchoice = "bjs.png"
+money_json = {"funds":100.0, "bg" : "bjs.png"}
 with open('money.json', 'w') as f:
     json.dump(money_json, f)
-funds = money_json["funds"]
-bgchoice = money_json["bg"]
+
 screen = pygame.display.set_mode(SIZE)
 
+def load_game():
+    global funds
+    global bgchoice
+    try:
+        with open('money.json', 'r') as f:
+            game_state = json.load(f)
+            print(game_state)
+            funds = money_json['funds']
+            bgchoice = game_state['bg']
+    except FileNotFoundError:
+        print("save file not found")
 #System functions (music, images, animations)
 def imageLoad(name, card):
 
@@ -79,6 +91,8 @@ def mainGame():
             oFont = pygame.font.Font(None, 50)
             displayFont = pygame.font.Font.render(oFont, "Game over! You're outta cash!", 1, (255,255,255), (0,0,0)) 
             screen.blit(displayFont, (125, 220))
+            funds = 100.00
+            money_json["funds"] = funds
             
             pygame.display.flip()
             
@@ -722,19 +736,8 @@ def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col)
     screen.blit(img, (x,y))
 
-def load_game():
-    global funds
-    try:
-        with open('money.json', 'r') as f:
-            game_state = json.load(f)
-            print(game_state)
-            funds = game_state["funds"]
-    except FileNotFoundError:
-        print("save file not found")
-
 #I put all my code in a function so that Darren's buttons can work
 def regulus_code():
-    load_game()
     global funds, game_paused, game_state, menu_state, SHOP_ITEMS, PRICES, second_item_randoms, show_not_enough_funds, show_funds_added_or_subtracted, error_start_time2, error_start_time3, ERROR_DISPLAY_DURATION2, ERROR_DISPLAY_DURATION3, result, background, show_not_bought, error_start_time4, ERROR_DISPLAY_DURATION4, show_already_bought, error_start_time5, ERROR_DISPLAY_DURATION5, sound, font, font2, font3, font4, TEXT_COL, TEXT_COL2, TEXT_COL3, TEXT_COL4, sound
     WIDTH = 1280
     HEIGHT = 700
@@ -963,6 +966,10 @@ def regulus_code():
         pygame.display.flip()
         clock.tick(30)
 
+
+
+load_game()
 regulus_code()
 
 pygame.quit()
+
